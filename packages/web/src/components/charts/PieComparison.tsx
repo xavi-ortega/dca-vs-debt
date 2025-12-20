@@ -5,13 +5,13 @@ import type { HeadRow } from "@/types";
 import { fmtBTC, fmtInt } from "@/lib/utils";
 import { freqColor, freqLabel, sortByFrequency } from "@/lib/frequency";
 
-type Props = { headRows: HeadRow[] | null };
+type Props = { headRows: HeadRow[] | null; embedded?: boolean };
 
 const emptyState = (
   <div className="text-sm text-muted-foreground">Run the backtest to see charts.</div>
 );
 
-export function PieComparison({ headRows }: Props) {
+export function PieComparison({ headRows, embedded = false }: Props) {
   const { slices, details } = useMemo(() => {
     if (!headRows) return { slices: [], details: [] as HeadRow[] };
 
@@ -32,6 +32,61 @@ export function PieComparison({ headRows }: Props) {
     return { slices, details: sortByFrequency(headRows) };
   }, [headRows]);
 
+  const content = !headRows ? (
+    emptyState
+  ) : (
+    <div className="grid gap-4 md:grid-cols-[1fr,1.2fr]">
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={slices} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>
+              {slices.map((slice) => (
+                <Cell key={slice.key} fill={slice.color} />
+              ))}
+            </Pie>
+            <Tooltip formatter={(v: any, name) => [`${v} freq`, name]} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="space-y-2">
+        {details.map((row) => (
+          <div
+            key={row.freq}
+            className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2 text-sm"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: freqColor[row.freq] }}
+              />
+              <div>
+                <div className="font-medium">{freqLabel[row.freq]}</div>
+                <div className="text-muted-foreground text-xs">
+                  Debt BTC {fmtBTC(row.debtBTC)} vs DCA BTC {fmtBTC(row.dcaBTC)}
+                </div>
+              </div>
+            </div>
+            <div
+              className="text-right text-xs font-medium"
+              style={{
+                color:
+                  row.deltaNetUSD > 0
+                    ? "var(--color-chart-1)"
+                    : row.deltaNetUSD < 0
+                      ? "var(--color-chart-2)"
+                      : "var(--muted-foreground)",
+              }}
+            >
+              Delta Net: {fmtInt(row.deltaNetUSD)} $
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (embedded) return content;
+
   return (
     <Card>
       <CardHeader>
@@ -40,60 +95,7 @@ export function PieComparison({ headRows }: Props) {
           Counts by rebalance cadence based on net USD outcome.
         </p>
       </CardHeader>
-      <CardContent className="grid gap-4 md:grid-cols-[1fr,1.2fr]">
-        {!headRows ? (
-          emptyState
-        ) : (
-          <>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={slices} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>
-                    {slices.map((slice) => (
-                      <Cell key={slice.key} fill={slice.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v: any, name) => [`${v} freq`, name]} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-2">
-              {details.map((row) => (
-                <div
-                  key={row.freq}
-                  className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2 text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: freqColor[row.freq] }}
-                    />
-                    <div>
-                      <div className="font-medium">{freqLabel[row.freq]}</div>
-                      <div className="text-muted-foreground text-xs">
-                        Debt BTC {fmtBTC(row.debtBTC)} vs DCA BTC {fmtBTC(row.dcaBTC)}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="text-right text-xs font-medium"
-                    style={{
-                      color:
-                        row.deltaNetUSD > 0
-                          ? "var(--color-chart-1)"
-                          : row.deltaNetUSD < 0
-                            ? "var(--color-chart-2)"
-                            : "var(--muted-foreground)",
-                    }}
-                  >
-                    Delta Net: {fmtInt(row.deltaNetUSD)} $
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </CardContent>
+      <CardContent>{content}</CardContent>
     </Card>
   );
 }

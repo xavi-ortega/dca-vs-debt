@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -8,9 +8,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  ScatterChart,
-  Scatter,
-  ZAxis,
+  ReferenceLine,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fmtBTC, fmtInt } from "@/lib/utils";
@@ -25,39 +23,36 @@ const emptyState = (
 );
 
 export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
-  const lines = useMemo(
-    () =>
-      FREQ_ORDER.flatMap((freq) => [
-        {
-          key: `debt-${freq}-btc`,
-          name: `${freqLabel[freq]} Debt BTC`,
-          color: freqColor[freq],
-          dash: "0",
-        },
-        {
-          key: `dca-${freq}-btc`,
-          name: `${freqLabel[freq]} DCA BTC`,
-          color: freqColor[freq],
-          dash: "6 4",
-        },
-      ]),
-    []
-  );
+  const [freq, setFreq] = useState(FREQ_ORDER[0]);
+
+  const rows = useMemo(() => {
+    if (!data) return [];
+    return data
+      .map((row) => ({
+        date: row.date as string,
+        debt: row[`debt-${freq}-btc`] as number | undefined,
+        dca: row[`dca-${freq}-btc`] as number | undefined,
+      }))
+      .filter((r) => typeof r.debt === "number" && typeof r.dca === "number");
+  }, [data, freq]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>BTC exposure over time</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Compare BTC holdings for Debt (solid) vs DCA (dashed) across all cadences.
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">
+            Compare BTC holdings for Debt vs DCA on the selected cadence.
+          </p>
+          <FreqSelect value={freq} onChange={setFreq} />
+        </div>
       </CardHeader>
       <CardContent className="h-96">
         {!data ? (
           emptyState
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
+            <LineChart data={rows}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="date" minTickGap={28} />
               <YAxis tickFormatter={(v) => fmtBTC(Number(v))} width={90} />
@@ -66,18 +61,23 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
                 labelFormatter={(lbl) => `Date: ${lbl}`}
               />
               <Legend />
-              {lines.map((line) => (
-                <Line
-                  key={line.key}
-                  dataKey={line.key}
-                  name={line.name}
-                  stroke={line.color}
-                  strokeWidth={2}
-                  strokeDasharray={line.dash}
-                  dot={false}
-                  isAnimationActive={false}
-                />
-              ))}
+              <Line
+                dataKey="debt"
+                name={`${freqLabel[freq]} Debt BTC`}
+                stroke={freqColor[freq]}
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                dataKey="dca"
+                name={`${freqLabel[freq]} DCA BTC`}
+                stroke={freqColor[freq]}
+                strokeDasharray="6 4"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         )}
@@ -86,26 +86,67 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
   );
 }
 
-export function PriceChart({ data }: { data: PricePoint[] | null }) {
+export function PriceChart({
+  data,
+  ltvEvents,
+}: {
+  data: PricePoint[] | null;
+  ltvEvents: LtvEvent[] | null;
+}) {
+  const [freq, setFreq] = useState(FREQ_ORDER[0]);
+  const filteredEvents = useMemo(
+    () => (ltvEvents ? ltvEvents.filter((e) => e.freq === freq) : []),
+    [ltvEvents, freq]
+  );
+  const rows = useMemo(
+    () =>
+      data?.map((d) => ({
+        ...d,
+        ts: new Date(d.date + "T00:00:00Z").getTime(),
+      })) ?? [],
+    [data]
+  );
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>BTC price</CardTitle>
-        <p className="text-sm text-muted-foreground">Spot BTC price over the selected period.</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">
+            Spot BTC and liquidation-risk moments for the selected cadence.
+          </p>
+          <FreqSelect value={freq} onChange={setFreq} />
+        </div>
       </CardHeader>
       <CardContent className="h-64">
         {!data ? (
           emptyState
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
+            <LineChart data={rows}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="date" minTickGap={28} />
+              <XAxis
+                type="number"
+                dataKey="ts"
+                tickFormatter={(v) => new Date(Number(v)).toISOString().slice(0, 10)}
+                domain={["dataMin", "dataMax"]}
+                minTickGap={28}
+              />
               <YAxis tickFormatter={(v) => fmtInt(Number(v))} width={80} />
               <Tooltip
                 formatter={(value: any) => fmtInt(Number(value))}
-                labelFormatter={(lbl) => `Date: ${lbl}`}
+                labelFormatter={(lbl) => `Date: ${new Date(Number(lbl)).toISOString().slice(0, 10)}`}
               />
+              {filteredEvents.map((e) => (
+                <ReferenceLine
+                  key={`${e.date}-${e.freq}`}
+                  x={new Date(e.date + "T00:00:00Z").getTime()}
+                  stroke="var(--color-destructive)"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.6}
+                  ifOverflow="extendDomain"
+                />
+              ))}
               <Line type="monotone" dataKey="price" stroke="var(--color-chart-3)" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
@@ -115,156 +156,13 @@ export function PriceChart({ data }: { data: PricePoint[] | null }) {
   );
 }
 
-export function LtvAlertChart({ events }: { events: LtvEvent[] | null }) {
-  const grouped = useMemo(() => {
-    if (!events) return null;
-    const freqToIndex = new Map(FREQ_ORDER.map((f, i) => [f, i]));
-    const toTs = (d: string) => new Date(d + "T00:00:00Z").getTime();
-    let minTs = Infinity;
-    let maxTs = -Infinity;
-    const byFreq = new Map<
-      string,
-      { freqLabel: string; color: string; points: Array<{ ts: number; date: string; freqIndex: number; freqLabel: string; ltv: number; size: number }> }
-    >();
-
-    for (const e of events) {
-      const key = e.freq;
-      if (!byFreq.has(key)) {
-        byFreq.set(key, {
-          freqLabel: freqLabel[e.freq],
-          color: freqColor[e.freq],
-          points: [],
-        });
-      }
-      const entry = byFreq.get(key)!;
-      const ts = toTs(e.date);
-      if (ts < minTs) minTs = ts;
-      if (ts > maxTs) maxTs = ts;
-
-      entry.points.push({
-        date: e.date,
-        ts,
-        freqLabel: freqLabel[e.freq],
-        freqIndex: freqToIndex.get(e.freq) ?? 0,
-        ltv: e.ltv,
-        size: 8 + (e.ltv - 0.5) * 20,
-      });
-    }
-
-    // Sort points within each series to keep X-axis monotone
-    for (const entry of byFreq.values()) {
-      entry.points.sort((a, b) => a.ts - b.ts);
-    }
-
-    const series = Array.from(byFreq.values());
-    return { series, minTs, maxTs };
-  }, [events]);
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Near-liquidation moments</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Points where Debt LTV ≥ 0.5. Larger markers indicate higher LTV.
-        </p>
-      </CardHeader>
-      <CardContent className="h-80">
-        {!grouped ? (
-          emptyState
-        ) : grouped.series.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No LTV ≥ 0.5 in this range.</div>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis
-                type="number"
-                dataKey="ts"
-                domain={[grouped.minTs, grouped.maxTs]}
-                tickFormatter={(v) => new Date(Number(v)).toISOString().slice(0, 10)}
-                tick={{ fontSize: 11 }}
-                minTickGap={24}
-                allowDataOverflow={false}
-              />
-              <YAxis
-                type="number"
-                dataKey="freqIndex"
-                domain={[0, FREQ_ORDER.length - 1]}
-                ticks={FREQ_ORDER.map((_, i) => i)}
-                tickFormatter={(v) => freqLabel[FREQ_ORDER[v] as any] ?? ""}
-                width={80}
-              />
-              <ZAxis type="number" dataKey="size" range={[6, 22]} />
-              <Tooltip content={(props) => <LtvTooltip {...props} grouped={grouped.series} />} />
-              <Legend />
-              {grouped.series.map((series) => (
-                <Scatter
-                  key={series.freqLabel}
-                  data={series.points}
-                  name={`LTV≥0.5 • ${series.freqLabel}`}
-                  fill={series.color}
-                  shape={(props: any) => {
-                    const payload = props.payload as any;
-                    const size = payload?.size ?? 10;
-                    return (
-                      <circle
-                        cx={props.cx}
-                        cy={props.cy}
-                        r={size / 2}
-                        fill={series.color}
-                        fillOpacity={0.8}
-                      />
-                    );
-                  }}
-                />
-              ))}
-            </ScatterChart>
-          </ResponsiveContainer>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function LtvTooltip({ active, label, payload, grouped }: any) {
-  if (!active || !grouped) return null;
-
-  const date =
-    label ??
-    (payload?.[0]?.payload?.ts
-      ? new Date(Number(payload[0].payload.ts)).toISOString().slice(0, 10)
-      : payload?.[0]?.payload?.date);
-  if (!date) return null;
-
-  const items = grouped
-    .flatMap((g: any) => g.points)
-    .filter((p: any) => p.date === date)
-    .sort((a: any, b: any) => (a.freqIndex ?? 0) - (b.freqIndex ?? 0));
-
-  if (items.length === 0) return null;
-
-  return (
-    <div className="rounded-md border bg-card px-3 py-2 text-xs shadow-sm">
-      <div className="font-semibold">Date: {date}</div>
-      <div className="mt-1 space-y-1">
-        {items.map((it: any, idx: number) => (
-          <div key={idx} className="flex items-center gap-2">
-            <span
-              className="inline-block h-2 w-2 rounded-full"
-              style={{ backgroundColor: it.color }}
-            />
-            <span className="font-medium">{it.freqLabel}</span>
-            <span className="text-muted-foreground">
-              LTV {(it.ltv * 100).toFixed(1)}%
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function HeadHeatmap({ headRows }: { headRows: HeadRow[] | null }) {
+export function HeadHeatmap({
+  headRows,
+  embedded = false,
+}: {
+  headRows: HeadRow[] | null;
+  embedded?: boolean;
+}) {
   if (!headRows) {
     return (
       <Card>
@@ -295,6 +193,33 @@ export function HeadHeatmap({ headRows }: { headRows: HeadRow[] | null }) {
     }
   };
 
+  const content = (
+    <div className="grid gap-3 sm:grid-cols-3">
+      {rows.map((row) => {
+        const delta = row.deltaNetUSD;
+        const bg = scaleColor(delta);
+        return (
+          <div
+            key={row.freq}
+            className="rounded-lg p-3 text-sm shadow-sm"
+            style={{
+              backgroundColor: bg,
+              color: "var(--foreground)",
+            }}
+            title={`Debt: ${fmtInt(row.debtNetUSD)} | DCA: ${fmtInt(
+              row.dcaValueUSD
+            )} | Delta: ${fmtInt(delta)}`}
+          >
+            <div className="font-semibold">{freqLabel[row.freq]}</div>
+            <div className="text-xs">Δ Net $: {fmtInt(delta)}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  if (embedded) return content;
+
   return (
     <Card>
       <CardHeader>
@@ -303,28 +228,33 @@ export function HeadHeatmap({ headRows }: { headRows: HeadRow[] | null }) {
           Net USD delta (Debt - DCA). Hover for details.
         </p>
       </CardHeader>
-      <CardContent className="grid gap-3 sm:grid-cols-3">
-        {rows.map((row) => {
-          const delta = row.deltaNetUSD;
-          const bg = scaleColor(delta);
-          return (
-            <div
-              key={row.freq}
-              className="rounded-lg p-3 text-sm shadow-sm"
-              style={{
-                backgroundColor: bg,
-                color: "var(--foreground)",
-              }}
-              title={`Debt: ${fmtInt(row.debtNetUSD)} | DCA: ${fmtInt(
-                row.dcaValueUSD
-              )} | Delta: ${fmtInt(delta)}`}
-            >
-              <div className="font-semibold">{freqLabel[row.freq]}</div>
-              <div className="text-xs">Δ Net $: {fmtInt(delta)}</div>
-            </div>
-          );
-        })}
-      </CardContent>
+      <CardContent>{content}</CardContent>
     </Card>
+  );
+}
+
+function FreqSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: any) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <span className="text-muted-foreground">Cadence:</span>
+      <div className="flex rounded-md border border-border bg-card px-1 py-0.5">
+        {FREQ_ORDER.map((f) => (
+          <button
+            key={f}
+            className={`px-2 py-1 rounded-sm text-xs ${value === f ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+            onClick={() => onChange(f)}
+            type="button"
+          >
+            {freqLabel[f]}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

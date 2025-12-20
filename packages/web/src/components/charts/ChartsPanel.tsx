@@ -1,7 +1,8 @@
 import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { HeadRow } from "@/types";
 import type { LtvEvent, PricePoint } from "@/hooks/useBacktest.js";
-import { CombinedBtcChart, HeadHeatmap, LtvAlertChart, PriceChart } from "./ComparisonCharts";
+import { CombinedBtcChart, HeadHeatmap, PriceChart } from "./ComparisonCharts";
 import { PieComparison } from "./PieComparison";
 
 type Props = {
@@ -18,13 +19,20 @@ export function ChartsPanel({ combinedBtcChart, ltvEvents, priceSeries, headRows
 
   return (
     <div className="mt-10 space-y-6">
-      <PriceChart data={priceSeries} />
+      <PriceChart data={priceSeries} ltvEvents={ltvEvents} />
       <CombinedBtcChart data={combinedBtcChart} />
-      <div className="grid gap-6 lg:grid-cols-2">
-        <LtvAlertChart events={ltvEvents} />
-        <HeadHeatmap headRows={headRows} />
-      </div>
-      <PieComparison headRows={headRows} />
+      <Card>
+        <CardHeader>
+          <CardTitle>Performance overview</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Net value deltas and win counts across cadences.
+          </p>
+        </CardHeader>
+        <CardContent className="grid gap-6 lg:grid-cols-2">
+          <PieComparison headRows={headRows} embedded />
+          <HeadHeatmap headRows={headRows} embedded />
+        </CardContent>
+      </Card>
     </div>
   );
 }
