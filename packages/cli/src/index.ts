@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 import fs from "fs";
 import path from "path";
+import kleur from "kleur";
+import Table from "cli-table3";
+import select from "@inquirer/select";
+
 import {
   FREQUENCIES,
   filterRange,
@@ -69,7 +73,7 @@ function detectColumns(header: string[]): {
 
   if (!dateCol || !priceCol) {
     throw new Error(
-      `Could not detect required columns.\nFound header: ${header.join(", ")}\nNeed date column (Start/End/Date/...) and price column (Close/Price/...).`,
+      `Could not detect required columns.\nFound header: ${header.join(", ")}\nNeed date column (Start/End/Date/...) and price column (Close/Price/...).`
     );
   }
   return { dateCol, priceCol };
@@ -92,7 +96,6 @@ function toISODate(value: string): string {
    ========================= */
 
 type CliArgs = {
-  csvPath: string | null;
   start: string | null;
   end: string | null;
 
@@ -113,11 +116,13 @@ type CliArgs = {
 
   includeDcaFees: boolean;
   dcaTxCount: number;
+
+  // If provided, skip interactive selection
+  dataset: string | null;
 };
 
 function parseArgs(argv: string[]): CliArgs {
   const args: CliArgs = {
-    csvPath: null,
     start: null,
     end: null,
 
@@ -138,40 +143,32 @@ function parseArgs(argv: string[]): CliArgs {
 
     includeDcaFees: true,
     dcaTxCount: 1,
-  };
 
-  const positional: string[] = [];
+    dataset: null,
+  };
 
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
 
-    if (a.startsWith("--")) {
-      const [k, v] = a.slice(2).split("=");
-      if (v === undefined) continue;
-      if (!(k in args)) continue;
+    if (!a.startsWith("--")) continue;
 
-      if (v === "true") (args as any)[k] = true;
-      else if (v === "false") (args as any)[k] = false;
-      else {
-        const num = Number(v);
-        (args as any)[k] = Number.isFinite(num) ? num : v;
-      }
-    } else {
-      positional.push(a);
+    const [k, v] = a.slice(2).split("=");
+    if (v === undefined) continue;
+    if (!(k in args)) continue;
+
+    if (v === "true") (args as any)[k] = true;
+    else if (v === "false") (args as any)[k] = false;
+    else {
+      const num = Number(v);
+      (args as any)[k] = Number.isFinite(num) ? num : v;
     }
   }
 
-  args.csvPath = positional[0] || null;
-  if (!args.csvPath) {
-    throw new Error(
-      "Usage: npm run cli -- <path/to.csv> [--start=YYYY-MM-DD --end=YYYY-MM-DD --initialUSD=... ...]",
-    );
-  }
   return args;
 }
 
 /* =========================
-   Table printing (CLI)
+   Formatting helpers
    ========================= */
 
 function fmtNum(n: number, digits = 2): string {
@@ -190,89 +187,168 @@ function fmtBTC(n: number): string {
   const digits = abs >= 100 ? 4 : abs >= 1 ? 6 : 8;
   return fmtNum(n, digits);
 }
-
-type Column<T> = {
-  key: keyof T;
-  label: string;
-  align?: "left" | "right";
-  format?: (v: any, row: T) => string;
-};
-
-function printTable<T extends Record<string, any>>(
-  title: string,
-  columns: Column<T>[],
-  rows: T[],
-) {
-  const formattedRows = rows.map((r) => {
-    const out: Record<string, string> = {};
-    for (const c of columns) {
-      const raw = r[c.key as string];
-      out[c.key as string] = c.format ? c.format(raw, r) : String(raw ?? "");
-    }
-    return out;
-  });
-
-  const widths: Record<string, number> = {};
-  for (const c of columns) {
-    const k = c.key as string;
-    let maxLen = c.label.length;
-    for (const r of formattedRows)
-      maxLen = Math.max(maxLen, (r[k] ?? "").length);
-    widths[k] = maxLen;
+function fmtBytes(bytes: number): string {
+  const units = ["B", "KB", "MB", "GB"];
+  let b = bytes;
+  let u = 0;
+  while (b >= 1024 && u < units.length - 1) {
+    b /= 1024;
+    u++;
   }
-
-  const pad = (s: string, w: number, align: "left" | "right") => {
-    if (s.length >= w) return s;
-    const spaces = " ".repeat(w - s.length);
-    return align === "right" ? spaces + s : s + spaces;
-  };
-
-  const separator = () =>
-    columns.map((c) => "-".repeat(widths[c.key as string])).join("-+-");
-
-  console.log(`\n=== ${title} ===`);
-  console.log(
-    columns
-      .map((c) => pad(c.label, widths[c.key as string], c.align ?? "left"))
-      .join(" | "),
-  );
-  console.log(separator());
-
-  for (const r of formattedRows) {
-    console.log(
-      columns
-        .map((c) =>
-          pad(r[c.key as string], widths[c.key as string], c.align ?? "left"),
-        )
-        .join(" | "),
-    );
-  }
+  return `${b.toFixed(u === 0 ? 0 : 1)} ${units[u]}`;
 }
 
 /* =========================
-   Path resolution helper
+   Repo/assets helpers
    ========================= */
 
-/**
- * When running via npm workspace, cwd is typically packages/cli.
- * This resolves relative CSV paths against the REPO ROOT, so "assets/..." works.
- */
-function resolveCsvPath(csvPathArg: string): string {
-  if (path.isAbsolute(csvPathArg)) return csvPathArg;
-
+function repoRootDir(): string {
   // packages/cli -> repo root
-  const repoRoot = path.resolve(process.cwd(), "../..");
-  return path.resolve(repoRoot, csvPathArg);
+  return path.resolve(process.cwd(), "../..");
+}
+
+type AssetDataset = {
+  name: string; // filename without .csv
+  file: string; // filename
+  fullPath: string;
+  bytes: number;
+};
+
+function listAssetDatasets(): AssetDataset[] {
+  const root = repoRootDir();
+  const assetsDir = path.join(root, "assets");
+  if (!fs.existsSync(assetsDir)) return [];
+
+  const files = fs
+    .readdirSync(assetsDir)
+    .filter((f) => f.toLowerCase().endsWith(".csv"))
+    .sort((a, b) => a.localeCompare(b));
+
+  return files.map((file) => {
+    const fullPath = path.join(assetsDir, file);
+    const st = fs.statSync(fullPath);
+    return {
+      name: file.replace(/\.csv$/i, ""),
+      file,
+      fullPath,
+      bytes: st.size,
+    };
+  });
+}
+
+function printDatasetTable(datasets: AssetDataset[]) {
+  const t = new Table({
+    head: [kleur.bold("Dataset"), kleur.bold("File"), kleur.bold("Size")],
+    colAligns: ["left", "left", "right"],
+    style: { head: [], border: [] },
+  });
+
+  for (const d of datasets) {
+    t.push([kleur.cyan(d.name), kleur.gray(d.file), fmtBytes(d.bytes)]);
+  }
+
+  console.log(kleur.bold().underline("Datasets (./assets)"));
+  console.log(t.toString());
+}
+
+function resolveDatasetByName(
+  datasets: AssetDataset[],
+  name: string
+): AssetDataset | null {
+  // Accept both "name" (without .csv) and "file" (with .csv)
+  const direct = datasets.find((d) => d.name === name || d.file === name);
+  if (direct) return direct;
+
+  // Small convenience: allow prefix match if unambiguous
+  const prefix = datasets.filter(
+    (d) => d.name.startsWith(name) || d.file.startsWith(name)
+  );
+  if (prefix.length === 1) return prefix[0];
+
+  return null;
+}
+
+async function chooseDataset(
+  datasets: AssetDataset[],
+  preferred: string | null
+): Promise<AssetDataset> {
+  if (datasets.length === 0) {
+    throw new Error(
+      `No datasets found in ${path.join(repoRootDir(), "assets")}\nPut one or more *.csv files there.`
+    );
+  }
+
+  // If dataset flag provided, resolve it and skip interactive selector
+  if (preferred) {
+    const found = resolveDatasetByName(datasets, preferred);
+    if (!found) {
+      const names = datasets.map((d) => d.name).join(", ");
+      throw new Error(`Unknown --dataset=${preferred}\nAvailable: ${names}`);
+    }
+    return found;
+  }
+
+  // If exactly one dataset, auto-select
+  if (datasets.length === 1) return datasets[0];
+
+  // Otherwise, show table + interactive selector
+  printDatasetTable(datasets);
+
+  const chosenName = await select({
+    message: "Select dataset",
+    choices: datasets.map((d) => ({
+      name: `${d.name}  (${fmtBytes(d.bytes)})`,
+      value: d.name,
+    })),
+  });
+
+  const found = resolveDatasetByName(datasets, chosenName);
+  if (!found) throw new Error("Internal error: selected dataset not found.");
+  return found;
+}
+
+/* =========================
+   Pretty tables
+   ========================= */
+
+type AnyRow = Record<string, any>;
+type Column<T extends AnyRow> = {
+  label: string;
+  align?: "left" | "right";
+  cell: (row: T) => string;
+};
+
+function printTable<T extends AnyRow>(
+  title: string,
+  columns: Column<T>[],
+  rows: T[]
+) {
+  console.log("\n" + kleur.bold().underline(title));
+
+  const t = new Table({
+    head: columns.map((c) => kleur.bold(c.label)),
+    colAligns: columns.map((c) => (c.align === "right" ? "right" : "left")),
+    style: { head: [], border: [] },
+  });
+
+  for (const r of rows) {
+    t.push(columns.map((c) => c.cell(r)));
+  }
+
+  console.log(t.toString());
 }
 
 /* =========================
    Main (CLI)
    ========================= */
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv);
 
-  const csvPath = resolveCsvPath(args.csvPath!);
+  const datasets = listAssetDatasets();
+  const chosen = await chooseDataset(datasets, args.dataset);
+
+  const csvPath = chosen.fullPath;
   const csvText = fs.readFileSync(csvPath, "utf8");
 
   const { header, rows } = parseCSV(csvText);
@@ -310,29 +386,45 @@ function main() {
     dcaTxCount: Number(args.dcaTxCount),
   };
 
-  console.log("=== BACKTEST CONFIG (CLI) ===");
-  console.log(`CSV: ${csvPath}`);
+  // Header / config
+  console.log(kleur.bold("\nBitcoin Strategy CLI"));
   console.log(
-    `Range: ${series[0].date} -> ${series.at(-1)!.date} (${series.length} days)`,
+    kleur.gray(`Dataset: ${chosen.name}  (${fmtBytes(chosen.bytes)})`)
+  );
+  console.log(kleur.gray(`File:    ${csvPath}`));
+  console.log(
+    kleur.gray(
+      `Range:   ${series[0].date} -> ${series.at(-1)!.date} (${series.length.toLocaleString("en-US")} days)`
+    )
   );
   console.log(
-    `Start price: $${fmtNum(series[0].price)} | End price: $${fmtNum(series.at(-1)!.price)}`,
+    kleur.gray(
+      `Price:   $${fmtNum(series[0].price)} -> $${fmtNum(series.at(-1)!.price)}`
+    )
   );
   console.log(
-    `Initial: initialBTC=${cfg.initialBTC} initialUSD=$${fmtNum(cfg.initialUSD)}`,
+    kleur.gray(
+      `Init:    initialBTC=${cfg.initialBTC}  initialUSD=$${fmtNum(cfg.initialUSD)}`
+    )
   );
   console.log(
-    `Debt: APR=${fmtNum(cfg.apr * 100)}% maxDebtPct=${cfg.maxDebtPct} band=${cfg.band}`,
+    kleur.gray(
+      `Debt:    APR=${fmtNum(cfg.apr * 100)}%  maxDebtPct=${cfg.maxDebtPct}  band=${cfg.band}`
+    )
   );
   console.log(
-    `Fees: sat/vB=${cfg.satPerVb} vbytes=${cfg.vbytesPerTx} txBorrow=${cfg.txBorrow} txRepay=${cfg.txRepay}`,
+    kleur.gray(
+      `Fees:    sat/vB=${cfg.satPerVb}  vbytes=${cfg.vbytesPerTx}  txBorrow=${cfg.txBorrow}  txRepay=${cfg.txRepay}`
+    )
   );
   console.log(
-    `DCA fees: includeFees=${dcaOpts.includeFees} dcaTxCount=${dcaOpts.dcaTxCount}`,
+    kleur.gray(
+      `DCA:     includeFees=${dcaOpts.includeFees}  dcaTxCount=${dcaOpts.dcaTxCount}`
+    )
   );
 
   const debtResults = FREQUENCIES.map((f: Frequency) =>
-    simulateDebtStrategy(series, cfg, f),
+    simulateDebtStrategy(series, cfg, f)
   );
   const debtRows = buildDebtReportRows(debtResults);
   const headRows = buildHeadToHeadRows(series, cfg, debtResults, dcaOpts);
@@ -341,175 +433,142 @@ function main() {
   printTable(
     "Debt Strategy Report",
     [
-      { key: "freq", label: "Freq", align: "left", format: (v) => String(v) },
       {
-        key: "btcFinal",
-        label: "BTC",
-        align: "right",
-        format: (v) => fmtBTC(v),
+        label: "Freq",
+        align: "left",
+        cell: (r: any) => kleur.cyan(String(r.freq)),
       },
+      { label: "BTC", align: "right", cell: (r: any) => fmtBTC(r.btcFinal) },
       {
-        key: "finalValueUSD",
         label: "Final $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.finalValueUSD),
       },
       {
-        key: "debtFinal",
         label: "Debt $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.debtFinal),
       },
       {
-        key: "netValueUSD",
         label: "Net $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.netValueUSD),
       },
       {
-        key: "externalTotalUSD",
         label: "External $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.externalTotalUSD),
       },
       {
-        key: "interestUSD",
         label: "Interest $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.interestUSD),
       },
       {
-        key: "principalUSD",
         label: "Principal $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.principalUSD),
       },
-      {
-        key: "feesUSD",
-        label: "Fees $",
-        align: "right",
-        format: (v) => fmtInt(v),
-      },
-      {
-        key: "borrows",
-        label: "Borrows",
-        align: "right",
-        format: (v) => fmtInt(v),
-      },
-      {
-        key: "repays",
-        label: "Repays",
-        align: "right",
-        format: (v) => fmtInt(v),
-      },
+      { label: "Fees $", align: "right", cell: (r: any) => fmtInt(r.feesUSD) },
+      { label: "Borrows", align: "right", cell: (r: any) => fmtInt(r.borrows) },
+      { label: "Repays", align: "right", cell: (r: any) => fmtInt(r.repays) },
     ],
-    debtRows,
+    debtRows
   );
 
   printTable(
     "Head-to-Head (Debt vs DCA same freq)",
     [
-      { key: "freq", label: "Freq", align: "left", format: (v) => String(v) },
       {
-        key: "debtBTC",
+        label: "Freq",
+        align: "left",
+        cell: (r: any) => kleur.cyan(String(r.freq)),
+      },
+      {
         label: "Debt BTC",
         align: "right",
-        format: (v) => fmtBTC(v),
+        cell: (r: any) => fmtBTC(r.debtBTC),
       },
+      { label: "DCA BTC", align: "right", cell: (r: any) => fmtBTC(r.dcaBTC) },
       {
-        key: "dcaBTC",
-        label: "DCA BTC",
-        align: "right",
-        format: (v) => fmtBTC(v),
-      },
-      {
-        key: "deltaBTC",
         label: "Δ BTC",
         align: "right",
-        format: (v) => fmtBTC(v),
+        cell: (r: any) => {
+          const v = r.deltaBTC as number;
+          const s = fmtBTC(v);
+          return v > 0 ? kleur.green(s) : v < 0 ? kleur.red(s) : s;
+        },
       },
       {
-        key: "debtNetUSD",
         label: "Debt Net $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.debtNetUSD),
       },
       {
-        key: "dcaValueUSD",
         label: "DCA $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.dcaValueUSD),
       },
       {
-        key: "deltaNetUSD",
         label: "Δ Net $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => {
+          const v = r.deltaNetUSD as number;
+          const s = fmtInt(v);
+          return v > 0 ? kleur.green(s) : v < 0 ? kleur.red(s) : s;
+        },
       },
       {
-        key: "externalUSD",
         label: "External $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.externalUSD),
       },
       {
-        key: "dcaFeesUSD",
         label: "DCA Fees $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.dcaFeesUSD),
       },
     ],
-    headRows,
+    headRows
   );
 
   printTable(
     "DCA Cross-Table (budget from Debt Freq)",
     [
       {
-        key: "debtFreq",
         label: "Debt Freq",
         align: "left",
-        format: (v) => String(v),
+        cell: (r: any) => kleur.cyan(String(r.debtFreq)),
       },
+      { label: "DCA Freq", align: "left", cell: (r: any) => String(r.dcaFreq) },
       {
-        key: "dcaFreq",
-        label: "DCA Freq",
-        align: "left",
-        format: (v) => String(v),
-      },
-      {
-        key: "budgetUSD",
         label: "Budget $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.budgetUSD),
       },
       {
-        key: "dcaBTCFinal",
         label: "DCA BTC",
         align: "right",
-        format: (v) => fmtBTC(v),
+        cell: (r: any) => fmtBTC(r.dcaBTCFinal),
       },
+      { label: "Buys", align: "right", cell: (r: any) => fmtInt(r.dcaBuys) },
       {
-        key: "dcaBuys",
-        label: "Buys",
-        align: "right",
-        format: (v) => fmtInt(v),
-      },
-      {
-        key: "dcaFeesUSD",
         label: "Fees $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.dcaFeesUSD),
       },
       {
-        key: "dcaValueFinalUSD",
         label: "Final $",
         align: "right",
-        format: (v) => fmtInt(v),
+        cell: (r: any) => fmtInt(r.dcaValueFinalUSD),
       },
     ],
-    crossRows,
+    crossRows
   );
 }
 
-main();
+// Nice error output
+main().catch((err) => {
+  console.error(kleur.red(`\nError: ${err?.message ?? String(err)}`));
+  process.exit(1);
+});
