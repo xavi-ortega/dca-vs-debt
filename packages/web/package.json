@@ -1,13 +1,23 @@
 {
-    "name": "@bitcoin-strategy/web",
-    "private": true,
-    "version": "1.0.0",
-    "type": "module",
-    "dependencies": {
-      "@bitcoin-strategy/core": "*"
-    },
-    "scripts": {
-      "dev": "echo \"(UI not set up yet)\""
-    }
+  "name": "@bitcoin-strategy/web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@bitcoin-strategy/core": "*",
+    "papaparse": "^5.5.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.2",
+    "vite": "^7.3.0"
   }
-  
+}

@@ -1,10 +1,16 @@
 export type Frequency = "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
 
-export const FREQUENCIES: Frequency[] = ["daily", "weekly", "monthly", "quarterly", "yearly"];
+export const FREQUENCIES: Frequency[] = [
+  "daily",
+  "weekly",
+  "monthly",
+  "quarterly",
+  "yearly",
+];
 
 export type SeriesPoint = {
-  date: string;   // ISO YYYY-MM-DD
-  price: number;  // USD
+  date: string; // ISO YYYY-MM-DD
+  price: number; // USD
 };
 
 export type CoreConfig = {
@@ -98,13 +104,19 @@ export type DcaCrossRow = {
   dcaValueFinalUSD: number;
 };
 
-export function filterRange(series: SeriesPoint[], start: string | null, end: string | null): SeriesPoint[] {
+export function filterRange(
+  series: SeriesPoint[],
+  start: string | null,
+  end: string | null,
+): SeriesPoint[] {
   let out = series;
   if (start) out = out.filter((x) => x.date >= start);
   if (end) out = out.filter((x) => x.date <= end);
 
   if (out.length < 10) {
-    throw new Error(`Filtered range too short. start=${start} end=${end} -> ${out.length} rows`);
+    throw new Error(
+      `Filtered range too short. start=${start} end=${end} -> ${out.length} rows`,
+    );
   }
   return out;
 }
@@ -124,12 +136,21 @@ export function isRebalanceDay(freq: Frequency, isoDate: string): boolean {
   return false;
 }
 
-export function btcFeeUSD(params: { satPerVb: number; vbytes: number; txCount: number; btcPriceUSD: number }): number {
+export function btcFeeUSD(params: {
+  satPerVb: number;
+  vbytes: number;
+  txCount: number;
+  btcPriceUSD: number;
+}): number {
   const sats = params.satPerVb * params.vbytes * params.txCount;
   return (sats / 1e8) * params.btcPriceUSD;
 }
 
-export function simulateDebtStrategy(series: SeriesPoint[], cfg: CoreConfig, freq: Frequency): DebtResult {
+export function simulateDebtStrategy(
+  series: SeriesPoint[],
+  cfg: CoreConfig,
+  freq: Frequency,
+): DebtResult {
   const {
     initialBTC,
     initialUSD,
@@ -178,7 +199,12 @@ export function simulateDebtStrategy(series: SeriesPoint[], cfg: CoreConfig, fre
       debt -= repay;
       principalUSD += repay;
 
-      feesUSD += btcFeeUSD({ satPerVb, vbytes: vbytesPerTx, txCount: txRepay, btcPriceUSD: price });
+      feesUSD += btcFeeUSD({
+        satPerVb,
+        vbytes: vbytesPerTx,
+        txCount: txRepay,
+        btcPriceUSD: price,
+      });
       repays++;
     }
 
@@ -191,7 +217,12 @@ export function simulateDebtStrategy(series: SeriesPoint[], cfg: CoreConfig, fre
         debt += borrow;
         btc += borrow / price;
 
-        feesUSD += btcFeeUSD({ satPerVb, vbytes: vbytesPerTx, txCount: txBorrow, btcPriceUSD: price });
+        feesUSD += btcFeeUSD({
+          satPerVb,
+          vbytes: vbytesPerTx,
+          txCount: txBorrow,
+          btcPriceUSD: price,
+        });
         borrows++;
       }
     }
@@ -223,7 +254,7 @@ export function simulateDCA(
   cfg: CoreConfig,
   freq: Frequency,
   externalBudgetUSD: number,
-  opts: DcaOptions = {}
+  opts: DcaOptions = {},
 ): DcaResult {
   const { includeFees = false, dcaTxCount = 1 } = opts;
 
@@ -262,7 +293,9 @@ export function simulateDCA(
   };
 }
 
-export function buildDebtReportRows(debtResults: DebtResult[]): DebtReportRow[] {
+export function buildDebtReportRows(
+  debtResults: DebtResult[],
+): DebtReportRow[] {
   return debtResults.map((dr) => ({
     freq: dr.freq,
     btcFinal: dr.btcFinal,
@@ -285,10 +318,16 @@ export function buildHeadToHeadRows(
   series: SeriesPoint[],
   cfg: CoreConfig,
   debtResults: DebtResult[],
-  opts: DcaOptions = {}
+  opts: DcaOptions = {},
 ): HeadToHeadRow[] {
   return debtResults.map((dr) => {
-    const dcaSame = simulateDCA(series, cfg, dr.freq, dr.externalTotalUSD, opts);
+    const dcaSame = simulateDCA(
+      series,
+      cfg,
+      dr.freq,
+      dr.externalTotalUSD,
+      opts,
+    );
 
     const debtNetUSD = dr.finalValueUSD - dr.debtFinal;
     const dcaNetUSD = dcaSame.finalValueUSD;
@@ -313,7 +352,7 @@ export function buildDcaCrossRows(
   series: SeriesPoint[],
   cfg: CoreConfig,
   debtResults: DebtResult[],
-  opts: DcaOptions = {}
+  opts: DcaOptions = {},
 ): DcaCrossRow[] {
   const rows: DcaCrossRow[] = [];
 

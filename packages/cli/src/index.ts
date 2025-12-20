@@ -17,7 +17,10 @@ import {
    CSV parsing (CLI)
    ========================= */
 
-function parseCSV(text: string): { header: string[]; rows: Record<string, string>[] } {
+function parseCSV(text: string): {
+  header: string[];
+  rows: Record<string, string>[];
+} {
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
   if (lines.length < 2) throw new Error("CSV file too short.");
 
@@ -35,7 +38,10 @@ function parseCSV(text: string): { header: string[]; rows: Record<string, string
   return { header, rows };
 }
 
-function detectColumns(header: string[]): { dateCol: string; priceCol: string } {
+function detectColumns(header: string[]): {
+  dateCol: string;
+  priceCol: string;
+} {
   const norm = (s: string) => s.toLowerCase().trim();
   const h = header.map(norm);
 
@@ -51,12 +57,19 @@ function detectColumns(header: string[]): { dateCol: string; priceCol: string } 
     return null;
   };
 
-  const dateCol = findAny(["date", "timestamp", "time", "datetime", "start", "end"]);
+  const dateCol = findAny([
+    "date",
+    "timestamp",
+    "time",
+    "datetime",
+    "start",
+    "end",
+  ]);
   const priceCol = findAny(["close", "adj close", "price", "close_usd"]);
 
   if (!dateCol || !priceCol) {
     throw new Error(
-      `Could not detect required columns.\nFound header: ${header.join(", ")}\nNeed date column (Start/End/Date/...) and price column (Close/Price/...).`
+      `Could not detect required columns.\nFound header: ${header.join(", ")}\nNeed date column (Start/End/Date/...) and price column (Close/Price/...).`,
     );
   }
   return { dateCol, priceCol };
@@ -151,7 +164,7 @@ function parseArgs(argv: string[]): CliArgs {
   args.csvPath = positional[0] || null;
   if (!args.csvPath) {
     throw new Error(
-      "Usage: npm run cli -- <path/to.csv> [--start=YYYY-MM-DD --end=YYYY-MM-DD --initialUSD=... ...]"
+      "Usage: npm run cli -- <path/to.csv> [--start=YYYY-MM-DD --end=YYYY-MM-DD --initialUSD=... ...]",
     );
   }
   return args;
@@ -163,7 +176,10 @@ function parseArgs(argv: string[]): CliArgs {
 
 function fmtNum(n: number, digits = 2): string {
   if (!Number.isFinite(n)) return "NaN";
-  return n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return n.toLocaleString("en-US", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
 }
 function fmtInt(n: number): string {
   if (!Number.isFinite(n)) return "NaN";
@@ -182,7 +198,11 @@ type Column<T> = {
   format?: (v: any, row: T) => string;
 };
 
-function printTable<T extends Record<string, any>>(title: string, columns: Column<T>[], rows: T[]) {
+function printTable<T extends Record<string, any>>(
+  title: string,
+  columns: Column<T>[],
+  rows: T[],
+) {
   const formattedRows = rows.map((r) => {
     const out: Record<string, string> = {};
     for (const c of columns) {
@@ -196,7 +216,8 @@ function printTable<T extends Record<string, any>>(title: string, columns: Colum
   for (const c of columns) {
     const k = c.key as string;
     let maxLen = c.label.length;
-    for (const r of formattedRows) maxLen = Math.max(maxLen, (r[k] ?? "").length);
+    for (const r of formattedRows)
+      maxLen = Math.max(maxLen, (r[k] ?? "").length);
     widths[k] = maxLen;
   }
 
@@ -206,21 +227,24 @@ function printTable<T extends Record<string, any>>(title: string, columns: Colum
     return align === "right" ? spaces + s : s + spaces;
   };
 
-  const separator = () => columns.map((c) => "-".repeat(widths[c.key as string])).join("-+-");
+  const separator = () =>
+    columns.map((c) => "-".repeat(widths[c.key as string])).join("-+-");
 
   console.log(`\n=== ${title} ===`);
   console.log(
     columns
       .map((c) => pad(c.label, widths[c.key as string], c.align ?? "left"))
-      .join(" | ")
+      .join(" | "),
   );
   console.log(separator());
 
   for (const r of formattedRows) {
     console.log(
       columns
-        .map((c) => pad(r[c.key as string], widths[c.key as string], c.align ?? "left"))
-        .join(" | ")
+        .map((c) =>
+          pad(r[c.key as string], widths[c.key as string], c.align ?? "left"),
+        )
+        .join(" | "),
     );
   }
 }
@@ -255,7 +279,10 @@ function main() {
   const { dateCol, priceCol } = detectColumns(header);
 
   const fullSeries: SeriesPoint[] = rows
-    .map((r) => ({ date: toISODate(r[dateCol] ?? ""), price: Number(r[priceCol]) }))
+    .map((r) => ({
+      date: toISODate(r[dateCol] ?? ""),
+      price: Number(r[priceCol]),
+    }))
     .filter((p) => Number.isFinite(p.price) && p.price > 0)
     .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -285,14 +312,28 @@ function main() {
 
   console.log("=== BACKTEST CONFIG (CLI) ===");
   console.log(`CSV: ${csvPath}`);
-  console.log(`Range: ${series[0].date} -> ${series.at(-1)!.date} (${series.length} days)`);
-  console.log(`Start price: $${fmtNum(series[0].price)} | End price: $${fmtNum(series.at(-1)!.price)}`);
-  console.log(`Initial: initialBTC=${cfg.initialBTC} initialUSD=$${fmtNum(cfg.initialUSD)}`);
-  console.log(`Debt: APR=${fmtNum(cfg.apr * 100)}% maxDebtPct=${cfg.maxDebtPct} band=${cfg.band}`);
-  console.log(`Fees: sat/vB=${cfg.satPerVb} vbytes=${cfg.vbytesPerTx} txBorrow=${cfg.txBorrow} txRepay=${cfg.txRepay}`);
-  console.log(`DCA fees: includeFees=${dcaOpts.includeFees} dcaTxCount=${dcaOpts.dcaTxCount}`);
+  console.log(
+    `Range: ${series[0].date} -> ${series.at(-1)!.date} (${series.length} days)`,
+  );
+  console.log(
+    `Start price: $${fmtNum(series[0].price)} | End price: $${fmtNum(series.at(-1)!.price)}`,
+  );
+  console.log(
+    `Initial: initialBTC=${cfg.initialBTC} initialUSD=$${fmtNum(cfg.initialUSD)}`,
+  );
+  console.log(
+    `Debt: APR=${fmtNum(cfg.apr * 100)}% maxDebtPct=${cfg.maxDebtPct} band=${cfg.band}`,
+  );
+  console.log(
+    `Fees: sat/vB=${cfg.satPerVb} vbytes=${cfg.vbytesPerTx} txBorrow=${cfg.txBorrow} txRepay=${cfg.txRepay}`,
+  );
+  console.log(
+    `DCA fees: includeFees=${dcaOpts.includeFees} dcaTxCount=${dcaOpts.dcaTxCount}`,
+  );
 
-  const debtResults = FREQUENCIES.map((f: Frequency) => simulateDebtStrategy(series, cfg, f));
+  const debtResults = FREQUENCIES.map((f: Frequency) =>
+    simulateDebtStrategy(series, cfg, f),
+  );
   const debtRows = buildDebtReportRows(debtResults);
   const headRows = buildHeadToHeadRows(series, cfg, debtResults, dcaOpts);
   const crossRows = buildDcaCrossRows(series, cfg, debtResults, dcaOpts);
@@ -301,48 +342,173 @@ function main() {
     "Debt Strategy Report",
     [
       { key: "freq", label: "Freq", align: "left", format: (v) => String(v) },
-      { key: "btcFinal", label: "BTC", align: "right", format: (v) => fmtBTC(v) },
-      { key: "finalValueUSD", label: "Final $", align: "right", format: (v) => fmtInt(v) },
-      { key: "debtFinal", label: "Debt $", align: "right", format: (v) => fmtInt(v) },
-      { key: "netValueUSD", label: "Net $", align: "right", format: (v) => fmtInt(v) },
-      { key: "externalTotalUSD", label: "External $", align: "right", format: (v) => fmtInt(v) },
-      { key: "interestUSD", label: "Interest $", align: "right", format: (v) => fmtInt(v) },
-      { key: "principalUSD", label: "Principal $", align: "right", format: (v) => fmtInt(v) },
-      { key: "feesUSD", label: "Fees $", align: "right", format: (v) => fmtInt(v) },
-      { key: "borrows", label: "Borrows", align: "right", format: (v) => fmtInt(v) },
-      { key: "repays", label: "Repays", align: "right", format: (v) => fmtInt(v) },
+      {
+        key: "btcFinal",
+        label: "BTC",
+        align: "right",
+        format: (v) => fmtBTC(v),
+      },
+      {
+        key: "finalValueUSD",
+        label: "Final $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "debtFinal",
+        label: "Debt $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "netValueUSD",
+        label: "Net $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "externalTotalUSD",
+        label: "External $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "interestUSD",
+        label: "Interest $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "principalUSD",
+        label: "Principal $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "feesUSD",
+        label: "Fees $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "borrows",
+        label: "Borrows",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "repays",
+        label: "Repays",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
     ],
-    debtRows
+    debtRows,
   );
 
   printTable(
     "Head-to-Head (Debt vs DCA same freq)",
     [
       { key: "freq", label: "Freq", align: "left", format: (v) => String(v) },
-      { key: "debtBTC", label: "Debt BTC", align: "right", format: (v) => fmtBTC(v) },
-      { key: "dcaBTC", label: "DCA BTC", align: "right", format: (v) => fmtBTC(v) },
-      { key: "deltaBTC", label: "Δ BTC", align: "right", format: (v) => fmtBTC(v) },
-      { key: "debtNetUSD", label: "Debt Net $", align: "right", format: (v) => fmtInt(v) },
-      { key: "dcaValueUSD", label: "DCA $", align: "right", format: (v) => fmtInt(v) },
-      { key: "deltaNetUSD", label: "Δ Net $", align: "right", format: (v) => fmtInt(v) },
-      { key: "externalUSD", label: "External $", align: "right", format: (v) => fmtInt(v) },
-      { key: "dcaFeesUSD", label: "DCA Fees $", align: "right", format: (v) => fmtInt(v) },
+      {
+        key: "debtBTC",
+        label: "Debt BTC",
+        align: "right",
+        format: (v) => fmtBTC(v),
+      },
+      {
+        key: "dcaBTC",
+        label: "DCA BTC",
+        align: "right",
+        format: (v) => fmtBTC(v),
+      },
+      {
+        key: "deltaBTC",
+        label: "Δ BTC",
+        align: "right",
+        format: (v) => fmtBTC(v),
+      },
+      {
+        key: "debtNetUSD",
+        label: "Debt Net $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "dcaValueUSD",
+        label: "DCA $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "deltaNetUSD",
+        label: "Δ Net $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "externalUSD",
+        label: "External $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "dcaFeesUSD",
+        label: "DCA Fees $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
     ],
-    headRows
+    headRows,
   );
 
   printTable(
     "DCA Cross-Table (budget from Debt Freq)",
     [
-      { key: "debtFreq", label: "Debt Freq", align: "left", format: (v) => String(v) },
-      { key: "dcaFreq", label: "DCA Freq", align: "left", format: (v) => String(v) },
-      { key: "budgetUSD", label: "Budget $", align: "right", format: (v) => fmtInt(v) },
-      { key: "dcaBTCFinal", label: "DCA BTC", align: "right", format: (v) => fmtBTC(v) },
-      { key: "dcaBuys", label: "Buys", align: "right", format: (v) => fmtInt(v) },
-      { key: "dcaFeesUSD", label: "Fees $", align: "right", format: (v) => fmtInt(v) },
-      { key: "dcaValueFinalUSD", label: "Final $", align: "right", format: (v) => fmtInt(v) },
+      {
+        key: "debtFreq",
+        label: "Debt Freq",
+        align: "left",
+        format: (v) => String(v),
+      },
+      {
+        key: "dcaFreq",
+        label: "DCA Freq",
+        align: "left",
+        format: (v) => String(v),
+      },
+      {
+        key: "budgetUSD",
+        label: "Budget $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "dcaBTCFinal",
+        label: "DCA BTC",
+        align: "right",
+        format: (v) => fmtBTC(v),
+      },
+      {
+        key: "dcaBuys",
+        label: "Buys",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "dcaFeesUSD",
+        label: "Fees $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
+      {
+        key: "dcaValueFinalUSD",
+        label: "Final $",
+        align: "right",
+        format: (v) => fmtInt(v),
+      },
     ],
-    crossRows
+    crossRows,
   );
 }
 
