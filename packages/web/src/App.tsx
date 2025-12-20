@@ -3,6 +3,7 @@ import type { CoreConfig } from "@bitcoin-strategy/core";
 import { Header } from "./components/Header.js";
 import { ConfigCards } from "./components/ConfigCards.js";
 import { ResultsTabs } from "./components/ResultsTabs.js";
+import { ChartsPanel } from "./components/charts/ChartsPanel.js";
 import { useDatasets, useDatasetLoader, useBacktest } from "./hooks/index.js";
 
 export default function App() {
@@ -15,6 +16,9 @@ export default function App() {
     debtRows,
     headRows,
     crossRows,
+    combinedBtcChart,
+    ltvEvents,
+    priceSeries,
     status: backtestStatus,
     runBacktest,
   } = useBacktest();
@@ -149,6 +153,13 @@ export default function App() {
           debtRows={debtRows}
           headRows={headRows}
           crossRows={crossRows}
+        />
+
+        <ChartsPanel
+          combinedBtcChart={combinedBtcChart}
+          ltvEvents={ltvEvents}
+          priceSeries={priceSeries}
+          headRows={headRows}
         />
 
         <div className="mt-10 text-xs text-muted-foreground">

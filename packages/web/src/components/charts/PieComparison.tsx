@@ -1,0 +1,99 @@
+import React, { useMemo } from "react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { HeadRow } from "@/types";
+import { fmtBTC, fmtInt } from "@/lib/utils";
+import { freqColor, freqLabel, sortByFrequency } from "@/lib/frequency";
+
+type Props = { headRows: HeadRow[] | null };
+
+const emptyState = (
+  <div className="text-sm text-muted-foreground">Run the backtest to see charts.</div>
+);
+
+export function PieComparison({ headRows }: Props) {
+  const { slices, details } = useMemo(() => {
+    if (!headRows) return { slices: [], details: [] as HeadRow[] };
+
+    const wins = { debt: 0, dca: 0, tie: 0 };
+
+    for (const row of headRows) {
+      if (row.deltaNetUSD > 0) wins.debt++;
+      else if (row.deltaNetUSD < 0) wins.dca++;
+      else wins.tie++;
+    }
+
+    const slices = [
+      { name: "Debt wins", key: "debt", value: wins.debt, color: "var(--color-chart-1)" },
+      { name: "DCA wins", key: "dca", value: wins.dca, color: "var(--color-chart-2)" },
+      { name: "Tie", key: "tie", value: wins.tie, color: "var(--color-muted-foreground)" },
+    ].filter((s) => s.value > 0);
+
+    return { slices, details: sortByFrequency(headRows) };
+  }, [headRows]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Who wins more often?</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Counts by rebalance cadence based on net USD outcome.
+        </p>
+      </CardHeader>
+      <CardContent className="grid gap-4 md:grid-cols-[1fr,1.2fr]">
+        {!headRows ? (
+          emptyState
+        ) : (
+          <>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={slices} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>
+                    {slices.map((slice) => (
+                      <Cell key={slice.key} fill={slice.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(v: any, name) => [`${v} freq`, name]} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-2">
+              {details.map((row) => (
+                <div
+                  key={row.freq}
+                  className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2 text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: freqColor[row.freq] }}
+                    />
+                    <div>
+                      <div className="font-medium">{freqLabel[row.freq]}</div>
+                      <div className="text-muted-foreground text-xs">
+                        Debt BTC {fmtBTC(row.debtBTC)} vs DCA BTC {fmtBTC(row.dcaBTC)}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="text-right text-xs font-medium"
+                    style={{
+                      color:
+                        row.deltaNetUSD > 0
+                          ? "var(--color-chart-1)"
+                          : row.deltaNetUSD < 0
+                            ? "var(--color-chart-2)"
+                            : "var(--muted-foreground)",
+                    }}
+                  >
+                    Delta Net: {fmtInt(row.deltaNetUSD)} $
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
