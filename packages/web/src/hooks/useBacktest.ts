@@ -9,6 +9,8 @@ import {
   type CoreConfig,
   type SeriesPoint,
   type Frequency,
+  isRebalanceDay,
+  btcFeeUSD,
 } from "@bitcoin-strategy/core";
 import type { DebtRow, HeadRow, CrossRow } from "../types/index.js";
 
@@ -61,7 +63,6 @@ export function useBacktest() {
       setCrossRows(cross);
       setCombinedBtcChart(combinedRows);
       setLtvEvents(events);
-      setPriceSeries(series.map((s) => ({ date: s.date, price: s.price })));
 
       setStatus(
         `Backtest ran on ${series.length.toLocaleString(
@@ -268,29 +269,4 @@ function simulateDcaTimeline(
   }
 
   return points;
-}
-
-function isRebalanceDay(freq: Frequency, isoDate: string): boolean {
-  const d = new Date(isoDate + "T00:00:00Z");
-
-  if (freq === "daily") return true;
-  if (freq === "weekly") return d.getUTCDay() === 1;
-  if (freq === "monthly") return d.getUTCDate() === 1;
-  if (freq === "quarterly") {
-    const m = d.getUTCMonth() + 1;
-    return d.getUTCDate() === 1 && [1, 4, 7, 10].includes(m);
-  }
-  if (freq === "yearly") return d.getUTCDate() === 1 && d.getUTCMonth() === 0;
-
-  return false;
-}
-
-function btcFeeUSD(params: {
-  satPerVb: number;
-  vbytes: number;
-  txCount: number;
-  btcPriceUSD: number;
-}): number {
-  const sats = params.satPerVb * params.vbytes * params.txCount;
-  return (sats / 1e8) * params.btcPriceUSD;
 }
