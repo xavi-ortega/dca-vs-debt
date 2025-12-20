@@ -1,0 +1,13 @@
+{
+  "name": "@bitcoin-strategy/cli",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@bitcoin-strategy/core": "*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "cli": "node dist/index.js"
+  }
+}

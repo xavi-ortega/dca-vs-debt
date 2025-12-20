@@ -1,0 +1,13 @@
+{
+    "name": "@bitcoin-strategy/web",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "dependencies": {
+      "@bitcoin-strategy/core": "*"
+    },
+    "scripts": {
+      "dev": "echo \"(UI not set up yet)\""
+    }
+  }
+  
