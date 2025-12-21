@@ -14,6 +14,21 @@ export type DcaResult = {
   finalValueUSD: number;
 };
 
+export type DcaState = {
+  btc: number;
+};
+
+export type DcaLedger = {
+  feesUSD: number;
+  buys: number;
+  spentUSD: number;
+};
+
+export type DcaSimulationOutcome = DcaResult & {
+  state: DcaState;
+  ledger: DcaLedger;
+};
+
 export type HeadToHeadRow = {
   freq: Frequency;
 
