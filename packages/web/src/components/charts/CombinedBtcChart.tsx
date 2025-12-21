@@ -63,7 +63,15 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
                 ]}
                 labelFormatter={(lbl) => `Date: ${lbl}`}
               />
-              <Legend />
+              <Legend
+                formatter={(value) => {
+                  if (value?.toString().toLowerCase().includes("debt"))
+                    return `${value} (solid)`;
+                  if (value?.toString().toLowerCase().includes("dca"))
+                    return `${value} (dashed)`;
+                  return value;
+                }}
+              />
               <Line
                 dataKey="debt"
                 name={`${freqLabel[freq]} Debt BTC`}

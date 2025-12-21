@@ -69,7 +69,10 @@ export function PriceChart({
                 domain={["dataMin", "dataMax"]}
                 minTickGap={28}
               />
-              <YAxis tickFormatter={(v) => fmtUSD(Number(v), 0, 0)} width={90} />
+              <YAxis
+                tickFormatter={(v) => fmtUSD(Number(v), 0, 0)}
+                width={90}
+              />
               <Tooltip
                 formatter={(value: any) => fmtUSD(Number(value), 0, 0)}
                 labelFormatter={(lbl) =>

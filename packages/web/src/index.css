@@ -45,6 +45,13 @@
 }
 
 :root {
+  font-family:
+    "Inter",
+    "IBM Plex Sans",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
   --radius: 0.625rem;
   --background: #f6f8fb;
   --foreground: #0e1a2a;
@@ -80,6 +87,13 @@
 }
 
 .dark {
+  font-family:
+    "Inter",
+    "IBM Plex Sans",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
   --background: #0b1221;
   --foreground: #e6eefc;
   --card: #111a2e;
@@ -120,8 +134,16 @@
   body {
     @apply text-foreground;
     background:
-      radial-gradient(140% 120% at 20% 20%, color-mix(in srgb, var(--accent) 14%, transparent), transparent),
-      radial-gradient(160% 140% at 80% 0%, color-mix(in srgb, var(--primary) 12%, transparent), transparent),
+      radial-gradient(
+        140% 120% at 20% 20%,
+        color-mix(in srgb, var(--accent) 14%, transparent),
+        transparent
+      ),
+      radial-gradient(
+        160% 140% at 80% 0%,
+        color-mix(in srgb, var(--primary) 12%, transparent),
+        transparent
+      ),
       var(--background);
   }
 }

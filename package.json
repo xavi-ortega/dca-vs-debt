@@ -27,11 +27,16 @@
     "cli": "npm --workspace packages/cli run cli --",
     "web": "npm --workspace packages/web run dev",
     "build:web": "npm --workspace packages/web run build",
-    "preview:web": "npm --workspace packages/web run preview"
+    "preview:web": "npm --workspace packages/web run preview",
+    "lint": "npm run lint --workspaces"
   },
   "author": "Xavi Ortega",
   "license": "ISC",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
     "@types/node": "^25.0.3",
     "prettier": "3.7.4",
     "typescript": "^5.9.3"

@@ -6,10 +6,17 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils.js";
 
 interface ConfigCardsProps {
@@ -40,12 +47,23 @@ interface ConfigCardsProps {
 }
 
 const InfoLabel = ({ label, tip }: { label: string; tip: string }) => (
-  <Label title={tip} className="flex items-center gap-1">
-    {label}
-    <span className="text-muted-foreground" aria-hidden>
-      ℹ
-    </span>
-  </Label>
+  <TooltipProvider delayDuration={150}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Label className="group inline-flex cursor-help items-center gap-1">
+          {label}
+          <Info
+            size={16}
+            className="text-muted-foreground transition-colors group-hover:text-foreground"
+            aria-hidden
+          />
+        </Label>
+      </TooltipTrigger>
+      <TooltipContent side="top" align="start">
+        {tip}
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
 );
 
 export function ConfigCards({
