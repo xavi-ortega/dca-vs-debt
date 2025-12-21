@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fmtInt } from "@/lib/utils";
+import { fmtUSD } from "@/lib/utils";
 import { FREQ_ORDER, freqLabel } from "@/lib/frequency";
 import type { HeadRow } from "@/types";
 
@@ -60,12 +60,14 @@ export function HeadHeatmap({
               backgroundColor: bg,
               color: "var(--foreground)",
             }}
-            title={`Debt: ${fmtInt(row.debtNetUSD)} | DCA: ${fmtInt(
+            title={`Debt: ${fmtUSD(row.debtNetUSD, 0, 0)} | DCA: ${fmtUSD(
               row.dcaValueUSD,
-            )} | Delta: ${fmtInt(delta)}`}
+              0,
+              0,
+            )} | Delta: ${fmtUSD(delta, 0, 0)}`}
           >
             <div className="font-semibold">{freqLabel[row.freq]}</div>
-            <div className="text-xs">Δ Net $: {fmtInt(delta)}</div>
+            <div className="text-xs">Δ Net $: {fmtUSD(delta, 0, 0)}</div>
           </div>
         );
       })}

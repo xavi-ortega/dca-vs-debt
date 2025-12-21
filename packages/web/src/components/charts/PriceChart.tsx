@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fmtInt } from "@/lib/utils";
+import { fmtUSD } from "@/lib/utils";
 import { FreqSelect } from "./FreqSelect.js";
 import type { LtvEvent, PricePoint } from "@/hooks/useBacktest.js";
 import { FREQ_ORDER } from "@/lib/frequency";
@@ -69,9 +69,9 @@ export function PriceChart({
                 domain={["dataMin", "dataMax"]}
                 minTickGap={28}
               />
-              <YAxis tickFormatter={(v) => fmtInt(Number(v))} width={80} />
+              <YAxis tickFormatter={(v) => fmtUSD(Number(v), 0, 0)} width={90} />
               <Tooltip
-                formatter={(value: any) => fmtInt(Number(value))}
+                formatter={(value: any) => fmtUSD(Number(value), 0, 0)}
                 labelFormatter={(lbl) =>
                   `Date: ${new Date(Number(lbl)).toISOString().slice(0, 10)}`
                 }

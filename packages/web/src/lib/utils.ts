@@ -20,5 +20,15 @@ export const fmtNum = (n: number, d = 2) =>
 export const fmtBTC = (n: number) => {
   const a = Math.abs(n);
   const d = a >= 100 ? 4 : a >= 1 ? 6 : 8;
-  return fmtNum(n, d);
+  return `${fmtNum(n, d)} BTC`;
 };
+
+export const fmtUSD = (n: number, minFraction = 0, maxFraction = 0) =>
+  Number.isFinite(n)
+    ? n.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: minFraction,
+        maximumFractionDigits: maxFraction,
+      })
+    : "NaN";

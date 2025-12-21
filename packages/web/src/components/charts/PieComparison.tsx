@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { HeadRow } from "@/types";
-import { fmtBTC, fmtInt } from "@/lib/utils";
+import { fmtBTC, fmtUSD } from "@/lib/utils";
 import { freqColor, freqLabel, sortByFrequency } from "@/lib/frequency";
 
 type Props = { headRows: HeadRow[] | null; embedded?: boolean };
@@ -14,8 +14,8 @@ const emptyState = (
 );
 
 export function PieComparison({ headRows, embedded = false }: Props) {
-  const { slices } = useMemo(() => {
-    if (!headRows) return { slices: [] };
+  const slices = useMemo(() => {
+    if (!headRows) return [];
 
     const wins = { debt: 0, dca: 0, tie: 0 };
 
@@ -25,7 +25,7 @@ export function PieComparison({ headRows, embedded = false }: Props) {
       else wins.tie++;
     }
 
-    const slices = [
+    return [
       {
         name: "Debt wins",
         key: "debt",
@@ -45,8 +45,6 @@ export function PieComparison({ headRows, embedded = false }: Props) {
         color: "var(--color-muted-foreground)",
       },
     ].filter((s) => s.value > 0);
-
-    return { slices };
   }, [headRows]);
 
   const content = !headRows ? (

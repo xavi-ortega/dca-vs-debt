@@ -6,9 +6,8 @@ import { CombinedBtcChart } from "./CombinedBtcChart.js";
 import { HeadHeatmap } from "./HeadHeatmap.js";
 import { PriceChart } from "./PriceChart.js";
 import { PieComparison } from "./PieComparison.js";
-import { freqLabel } from "@/lib/frequency";
-import { freqColor, sortByFrequency } from "@/lib/frequency.js";
-import { fmtBTC, fmtInt } from "@/lib/utils.js";
+import { freqLabel, freqColor, sortByFrequency } from "@/lib/frequency.js";
+import { fmtBTC, fmtUSD } from "@/lib/utils.js";
 
 type Props = {
   combinedBtcChart: Record<string, number | string>[] | null;
@@ -34,7 +33,7 @@ export function ChartsPanel({
     : { title: "Summary", body: "Run the backtest to see the summary." };
 
   return (
-    <div className="mt-10 space-y-6">
+    <div className="space-y-6">
       <PriceChart data={priceSeries} ltvEvents={ltvEvents} />
       <CombinedBtcChart data={combinedBtcChart} />
       <Card>
@@ -45,12 +44,11 @@ export function ChartsPanel({
           </p>
         </CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-2">
-          <div>
+          <div className="space-y-4">
             <PieComparison headRows={headRows} embedded />
             <HeadHeatmap headRows={headRows} embedded />
           </div>
-
-          <div className="space-y-2 rounded-lg border border-border/70 p-4 text-sm">
+          <div className="space-y-3 rounded-lg border border-border/70 p-4 text-sm">
             <div className="text-xs uppercase text-muted-foreground tracking-wide">
               Summary
             </div>
@@ -58,41 +56,40 @@ export function ChartsPanel({
             <div className="text-muted-foreground text-xs leading-relaxed">
               {summaryContent.body}
             </div>
-
             <div className="space-y-2">
-              {sortByFrequency(headRows).map((row) => (
-                <div
-                  key={row.freq}
-                  className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2 text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: freqColor[row.freq] }}
-                    />
-                    <div>
-                      <div className="font-medium">{freqLabel[row.freq]}</div>
-                      <div className="text-muted-foreground text-xs">
-                        Debt BTC {fmtBTC(row.debtBTC)} vs DCA BTC{" "}
-                        {fmtBTC(row.dcaBTC)}
+              {headRows &&
+                sortByFrequency(headRows).map((row) => (
+                  <div
+                    key={row.freq}
+                    className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2 text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: freqColor[row.freq] }}
+                      />
+                      <div>
+                        <div className="font-medium">{freqLabel[row.freq]}</div>
+                        <div className="text-muted-foreground text-xs">
+                          Debt {fmtBTC(row.debtBTC)} vs DCA {fmtBTC(row.dcaBTC)}
+                        </div>
                       </div>
                     </div>
+                    <div
+                      className="text-right text-xs font-medium"
+                      style={{
+                        color:
+                          row.deltaNetUSD > 0
+                            ? "var(--color-chart-1)"
+                            : row.deltaNetUSD < 0
+                              ? "var(--color-chart-2)"
+                              : "var(--muted-foreground)",
+                      }}
+                    >
+                      Delta Net: {fmtUSD(row.deltaNetUSD, 0, 0)}
+                    </div>
                   </div>
-                  <div
-                    className="text-right text-xs font-medium"
-                    style={{
-                      color:
-                        row.deltaNetUSD > 0
-                          ? "var(--color-chart-1)"
-                          : row.deltaNetUSD < 0
-                            ? "var(--color-chart-2)"
-                            : "var(--muted-foreground)",
-                    }}
-                  >
-                    Delta Net: {fmtInt(row.deltaNetUSD)} $
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </CardContent>
@@ -108,8 +105,10 @@ function buildSummary(headRows: HeadRow[]) {
 
   return {
     title: best
-      ? `${freqLabel[best.freq]} leads by ${best.deltaNetUSD.toFixed(0)}$`
+      ? `${freqLabel[best.freq]} leads by ${fmtUSD(best.deltaNetUSD, 0, 0)}`
       : "No data",
-    body: `Debt better in ${debtWins} cadences, DCA better in ${dcaWins}. Best delta: ${freqLabel[best?.freq ?? "daily"] ?? ""} (${best?.deltaNetUSD?.toFixed(0) ?? 0}$).`,
+    body: `Debt better in ${debtWins} cadences, DCA better in ${dcaWins}. Best delta: ${
+      freqLabel[best?.freq ?? "daily"] ?? ""
+    } (${fmtUSD(best?.deltaNetUSD ?? 0, 0, 0)}).`,
   };
 }

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "./DataTable.js";
-import { fmtBTC, fmtInt } from "@/lib/utils";
+import { fmtBTC, fmtUSD, fmtInt } from "@/lib/utils";
 import type { DebtRow, HeadRow, CrossRow } from "../types/index.js";
 
 interface ResultsTabsProps {
@@ -89,55 +89,55 @@ export function ResultsTabs({
                       key: "finalValueUSD",
                       label: "Final $",
                       align: "right",
-                      render: (r) => fmtInt(r.finalValueUSD),
+                      render: (r) => fmtUSD(r.finalValueUSD, 0, 0),
                     },
                     {
                       key: "debtFinal",
                       label: "Debt $",
                       align: "right",
-                      render: (r) => fmtInt(r.debtFinal),
+                      render: (r) => fmtUSD(r.debtFinal, 0, 0),
                     },
                     {
                       key: "netValueUSD",
                       label: "Net $",
                       align: "right",
-                      render: (r) => fmtInt(r.netValueUSD),
+                      render: (r) => fmtUSD(r.netValueUSD, 0, 0),
                     },
                     {
                       key: "externalTotalUSD",
                       label: "External $",
                       align: "right",
-                      render: (r) => fmtInt(r.externalTotalUSD),
+                      render: (r) => fmtUSD(r.externalTotalUSD, 0, 0),
                     },
                     {
                       key: "interestUSD",
                       label: "Interest $",
                       align: "right",
-                      render: (r) => fmtInt(r.interestUSD),
+                      render: (r) => fmtUSD(r.interestUSD, 0, 0),
                     },
                     {
                       key: "principalUSD",
                       label: "Principal $",
                       align: "right",
-                      render: (r) => fmtInt(r.principalUSD),
+                      render: (r) => fmtUSD(r.principalUSD, 0, 0),
                     },
                     {
                       key: "feesUSD",
                       label: "Fees $",
                       align: "right",
-                      render: (r) => fmtInt(r.feesUSD),
+                      render: (r) => fmtUSD(r.feesUSD, 0, 0),
                     },
                     {
                       key: "borrows",
                       label: "Borrows",
                       align: "right",
-                      render: (r) => fmtInt(r.borrows),
+                      render: (r) => r.borrows.toLocaleString("en-US"),
                     },
                     {
                       key: "repays",
                       label: "Repays",
                       align: "right",
-                      render: (r) => fmtInt(r.repays),
+                      render: (r) => r.repays.toLocaleString("en-US"),
                     },
                   ]}
                   rows={debtRows}
@@ -186,31 +186,31 @@ export function ResultsTabs({
                       key: "debtNetUSD",
                       label: "Debt Net $",
                       align: "right",
-                      render: (r) => fmtInt(r.debtNetUSD),
+                      render: (r) => fmtUSD(r.debtNetUSD, 0, 0),
                     },
                     {
                       key: "dcaValueUSD",
                       label: "DCA $",
                       align: "right",
-                      render: (r) => fmtInt(r.dcaValueUSD),
+                      render: (r) => fmtUSD(r.dcaValueUSD, 0, 0),
                     },
                     {
                       key: "deltaNetUSD",
                       label: "Δ Net $",
                       align: "right",
-                      render: (r) => fmtInt(r.deltaNetUSD),
+                      render: (r) => fmtUSD(r.deltaNetUSD, 0, 0),
                     },
                     {
                       key: "externalUSD",
                       label: "External $",
                       align: "right",
-                      render: (r) => fmtInt(r.externalUSD),
+                      render: (r) => fmtUSD(r.externalUSD, 0, 0),
                     },
                     {
                       key: "dcaFeesUSD",
                       label: "DCA Fees $",
                       align: "right",
-                      render: (r) => fmtInt(r.dcaFeesUSD),
+                      render: (r) => fmtUSD(r.dcaFeesUSD, 0, 0),
                     },
                   ]}
                   rows={headRows}
@@ -242,7 +242,7 @@ export function ResultsTabs({
                       key: "budgetUSD",
                       label: "Budget $",
                       align: "right",
-                      render: (r) => fmtInt(r.budgetUSD),
+                      render: (r) => fmtUSD(r.budgetUSD, 0, 0),
                     },
                     {
                       key: "dcaBTCFinal",
@@ -260,13 +260,13 @@ export function ResultsTabs({
                       key: "dcaFeesUSD",
                       label: "Fees $",
                       align: "right",
-                      render: (r) => fmtInt(r.dcaFeesUSD),
+                      render: (r) => fmtUSD(r.dcaFeesUSD, 0, 0),
                     },
                     {
                       key: "dcaValueFinalUSD",
                       label: "Final $",
                       align: "right",
-                      render: (r) => fmtInt(r.dcaValueFinalUSD),
+                      render: (r) => fmtUSD(r.dcaValueFinalUSD, 0, 0),
                     },
                   ]}
                   rows={crossRows}
