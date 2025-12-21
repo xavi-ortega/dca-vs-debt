@@ -5,7 +5,9 @@ import { FREQ_ORDER, freqLabel } from "@/lib/frequency";
 import type { HeadRow } from "@/types";
 
 const emptyState = (
-  <div className="text-sm text-muted-foreground">Run the backtest to see charts.</div>
+  <div className="text-sm text-muted-foreground">
+    Run the backtest to see charts.
+  </div>
 );
 
 export function HeadHeatmap({
@@ -26,9 +28,9 @@ export function HeadHeatmap({
     );
   }
 
-  const rows = FREQ_ORDER.map((freq) => headRows.find((r) => r.freq === freq)).filter(
-    Boolean
-  ) as HeadRow[];
+  const rows = FREQ_ORDER.map((freq) =>
+    headRows.find((r) => r.freq === freq),
+  ).filter(Boolean) as HeadRow[];
 
   const scaleColor = (delta: number) => {
     // Smooth diverging palette using tanh to compress extremes.
@@ -59,7 +61,7 @@ export function HeadHeatmap({
               color: "var(--foreground)",
             }}
             title={`Debt: ${fmtInt(row.debtNetUSD)} | DCA: ${fmtInt(
-              row.dcaValueUSD
+              row.dcaValueUSD,
             )} | Delta: ${fmtInt(delta)}`}
           >
             <div className="font-semibold">{freqLabel[row.freq]}</div>

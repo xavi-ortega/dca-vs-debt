@@ -22,4 +22,3 @@ export function isRebalanceDay(freq: Frequency, isoDate: string): boolean {
 
   return false;
 }
-

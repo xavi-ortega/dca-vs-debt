@@ -39,4 +39,3 @@ export type DcaCrossRow = {
   dcaFeesUSD: number;
   dcaValueFinalUSD: number;
 };
-

@@ -26,7 +26,7 @@ export async function fetchCsvSeries(url: string): Promise<SeriesPoint[]> {
       if (Number.isNaN(d.getTime())) return null;
 
       const iso = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(
-        d.getUTCDate()
+        d.getUTCDate(),
       ).padStart(2, "0")}`;
 
       const price = Number(priceRaw);

@@ -46,4 +46,3 @@ export function getDebtTableColumns(): Column<DebtReportRow>[] {
     { label: "Repays", align: "right", cell: (r) => fmtInt(r.repays) },
   ];
 }
-

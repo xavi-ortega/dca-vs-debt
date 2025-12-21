@@ -11,12 +11,14 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fmtInt } from "@/lib/utils";
-import { FreqSelect } from "./FreqSelect";
+import { FreqSelect } from "./FreqSelect.js";
 import type { LtvEvent, PricePoint } from "@/hooks/useBacktest.js";
 import { FREQ_ORDER } from "@/lib/frequency";
 
 const emptyState = (
-  <div className="text-sm text-muted-foreground">Run the backtest to see charts.</div>
+  <div className="text-sm text-muted-foreground">
+    Run the backtest to see charts.
+  </div>
 );
 
 export function PriceChart({
@@ -29,7 +31,7 @@ export function PriceChart({
   const [freq, setFreq] = useState(FREQ_ORDER[0]);
   const filteredEvents = useMemo(
     () => (ltvEvents ? ltvEvents.filter((e) => e.freq === freq) : []),
-    [ltvEvents, freq]
+    [ltvEvents, freq],
   );
   const rows = useMemo(
     () =>
@@ -37,7 +39,7 @@ export function PriceChart({
         ...d,
         ts: new Date(d.date + "T00:00:00Z").getTime(),
       })) ?? [],
-    [data]
+    [data],
   );
 
   return (
@@ -61,14 +63,18 @@ export function PriceChart({
               <XAxis
                 type="number"
                 dataKey="ts"
-                tickFormatter={(v) => new Date(Number(v)).toISOString().slice(0, 10)}
+                tickFormatter={(v) =>
+                  new Date(Number(v)).toISOString().slice(0, 10)
+                }
                 domain={["dataMin", "dataMax"]}
                 minTickGap={28}
               />
               <YAxis tickFormatter={(v) => fmtInt(Number(v))} width={80} />
               <Tooltip
                 formatter={(value: any) => fmtInt(Number(value))}
-                labelFormatter={(lbl) => `Date: ${new Date(Number(lbl)).toISOString().slice(0, 10)}`}
+                labelFormatter={(lbl) =>
+                  `Date: ${new Date(Number(lbl)).toISOString().slice(0, 10)}`
+                }
               />
               {filteredEvents.map((e) => (
                 <ReferenceLine
@@ -80,7 +86,13 @@ export function PriceChart({
                   ifOverflow="extendDomain"
                 />
               ))}
-              <Line type="monotone" dataKey="price" stroke="var(--color-chart-3)" strokeWidth={2} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="price"
+                stroke="var(--color-chart-3)"
+                strokeWidth={2}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         )}

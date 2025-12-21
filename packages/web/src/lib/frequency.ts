@@ -25,11 +25,11 @@ export const freqColor: Record<Frequency, string> = {
 };
 
 export function sortByFrequency<T extends { freq: Frequency }>(
-  rows: T[] | null | undefined
+  rows: T[] | null | undefined,
 ): T[] {
   if (!rows) return [];
   const order = new Map(FREQ_ORDER.map((f, i) => [f, i]));
   return [...rows].sort(
-    (a, b) => (order.get(a.freq) ?? 0) - (order.get(b.freq) ?? 0)
+    (a, b) => (order.get(a.freq) ?? 0) - (order.get(b.freq) ?? 0),
   );
 }

@@ -8,11 +8,11 @@ import { repoRootDir } from "./paths.js";
 
 export async function chooseDataset(
   datasets: AssetDataset[],
-  preferred: string | null
+  preferred: string | null,
 ): Promise<AssetDataset> {
   if (datasets.length === 0) {
     throw new Error(
-      `No datasets found in ${path.join(repoRootDir(), "assets")}\nPut one or more *.csv files there.`
+      `No datasets found in ${path.join(repoRootDir(), "assets")}\nPut one or more *.csv files there.`,
     );
   }
 
@@ -44,4 +44,3 @@ export async function chooseDataset(
   if (!found) throw new Error("Internal error: selected dataset not found.");
   return found;
 }
-

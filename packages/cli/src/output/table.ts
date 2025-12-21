@@ -5,7 +5,7 @@ import type { AnyRow, Column } from "./types.js";
 export function printTable<T extends AnyRow>(
   title: string,
   columns: Column<T>[],
-  rows: T[]
+  rows: T[],
 ) {
   console.log("\n" + kleur.bold().underline(title));
 
@@ -21,4 +21,3 @@ export function printTable<T extends AnyRow>(
 
   console.log(t.toString());
 }
-

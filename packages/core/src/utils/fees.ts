@@ -7,4 +7,3 @@ export function btcFeeUSD(params: {
   const sats = params.satPerVb * params.vbytes * params.txCount;
   return (sats / 1e8) * params.btcPriceUSD;
 }
-

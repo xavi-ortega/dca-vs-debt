@@ -14,14 +14,14 @@ export function useDatasets(): Dataset[] {
       // Add more files later:
       // { id: "btc_2020_2025", label: "BTC daily (2020-01-01 → 2025-12-20)", url: "/data/bitcoin_2020-01-01_2025-12-20.csv" },
     ],
-    []
+    [],
   );
 }
 
 export function useDatasetLoader() {
   const [rawSeries, setRawSeries] = useState<SeriesPoint[] | null>(null);
   const [status, setStatus] = useState<string>(
-    "Select a dataset and click Load."
+    "Select a dataset and click Load.",
   );
 
   const loadDataset = async (dataset: Dataset) => {
@@ -33,7 +33,7 @@ export function useDatasetLoader() {
       setRawSeries(series);
 
       setStatus(
-        `Loaded ${series.length.toLocaleString("en-US")} rows (${series[0].date} → ${series.at(-1)!.date}).`
+        `Loaded ${series.length.toLocaleString("en-US")} rows (${series[0].date} → ${series.at(-1)!.date}).`,
       );
     } catch (e: any) {
       setStatus(`Error: ${String(e?.message ?? e)}`);
@@ -43,4 +43,3 @@ export function useDatasetLoader() {
 
   return { rawSeries, status, loadDataset };
 }
-

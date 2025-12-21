@@ -24,6 +24,7 @@ export default function App() {
   } = useBacktest();
 
   const [darkMode, setDarkMode] = useState(false);
+  const [advancedMode, setAdvancedMode] = useState(false);
 
   // Inputs
   const [start, setStart] = useState("2023-01-01");
@@ -41,9 +42,9 @@ export default function App() {
   const [txBorrow, setTxBorrow] = useState(1);
   const [txRepay, setTxRepay] = useState(1);
 
-  const [includeDcaFees, setIncludeDcaFees] = useState(true);
-
-  const [activeTab, setActiveTab] = useState<"debt" | "head" | "cross">("debt");
+  const [activeTab, setActiveTab] = useState<
+    "charts" | "debt" | "head" | "cross"
+  >("charts");
 
   const cfg: CoreConfig = useMemo(
     () => ({
@@ -72,7 +73,7 @@ export default function App() {
       vbytesPerTx,
       txBorrow,
       txRepay,
-    ]
+    ],
   );
 
   // Apply dark mode to <html>
@@ -86,7 +87,7 @@ export default function App() {
 
   const handleRun = () => {
     if (!rawSeries) return;
-    runBacktest(rawSeries, cfg, start, end, includeDcaFees);
+    runBacktest(rawSeries, cfg, start, end, true);
   };
 
   const canRun = Boolean(rawSeries);
@@ -131,8 +132,7 @@ export default function App() {
           vbytesPerTx={vbytesPerTx}
           txBorrow={txBorrow}
           txRepay={txRepay}
-          includeDcaFees={includeDcaFees}
-          rawSeries={rawSeries}
+          advancedMode={advancedMode}
           onStartChange={setStart}
           onEndChange={setEnd}
           onInitialBTCChange={setInitialBTC}
@@ -144,7 +144,7 @@ export default function App() {
           onVbytesPerTxChange={setVbytesPerTx}
           onTxBorrowChange={setTxBorrow}
           onTxRepayChange={setTxRepay}
-          onIncludeDcaFeesChange={setIncludeDcaFees}
+          onAdvancedModeChange={setAdvancedMode}
         />
 
         <ResultsTabs
@@ -153,18 +153,32 @@ export default function App() {
           debtRows={debtRows}
           headRows={headRows}
           crossRows={crossRows}
+          hasResults={Boolean(
+            debtRows ||
+            headRows ||
+            crossRows ||
+            combinedBtcChart ||
+            priceSeries,
+          )}
+          chartsContent={
+            <ChartsPanel
+              combinedBtcChart={combinedBtcChart}
+              ltvEvents={ltvEvents}
+              priceSeries={priceSeries}
+              headRows={headRows}
+            />
+          }
         />
 
-        <ChartsPanel
-          combinedBtcChart={combinedBtcChart}
-          ltvEvents={ltvEvents}
-          priceSeries={priceSeries}
-          headRows={headRows}
-        />
-
-        <div className="mt-10 text-xs text-muted-foreground">
-          Tip: keep datasets in <code>packages/web/public/data</code> and
-          reference them as <code>/data/&lt;file&gt;.csv</code>.
+        <div className="mt-10 text-xs text-muted-foreground text-center">
+          Made with ♥ by{" "}
+          <a
+            className="underline"
+            target="_blank"
+            href="https://github.com/xavi-ortega"
+          >
+            Xavi Ortega
+          </a>
         </div>
       </div>
     </div>

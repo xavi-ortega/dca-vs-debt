@@ -62,4 +62,3 @@ export function buildDcaCrossRows(
   }
   return rows;
 }
-

@@ -45,4 +45,3 @@ export function parseArgs(argv: string[]): CliArgs {
 
   return args;
 }
-

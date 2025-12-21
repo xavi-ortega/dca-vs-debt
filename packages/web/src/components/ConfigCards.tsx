@@ -1,11 +1,16 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { fmtNum } from "@/lib/utils";
-import type { SeriesPoint } from "@bitcoin-strategy/core";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils.js";
 
 interface ConfigCardsProps {
   start: string;
@@ -19,8 +24,7 @@ interface ConfigCardsProps {
   vbytesPerTx: number;
   txBorrow: number;
   txRepay: number;
-  includeDcaFees: boolean;
-  rawSeries: SeriesPoint[] | null;
+  advancedMode: boolean;
   onStartChange: (value: string) => void;
   onEndChange: (value: string) => void;
   onInitialBTCChange: (value: number) => void;
@@ -32,8 +36,17 @@ interface ConfigCardsProps {
   onVbytesPerTxChange: (value: number) => void;
   onTxBorrowChange: (value: number) => void;
   onTxRepayChange: (value: number) => void;
-  onIncludeDcaFeesChange: (value: boolean) => void;
+  onAdvancedModeChange: (value: boolean) => void;
 }
+
+const InfoLabel = ({ label, tip }: { label: string; tip: string }) => (
+  <Label title={tip} className="flex items-center gap-1">
+    {label}
+    <span className="text-muted-foreground" aria-hidden>
+      ℹ
+    </span>
+  </Label>
+);
 
 export function ConfigCards({
   start,
@@ -47,8 +60,7 @@ export function ConfigCards({
   vbytesPerTx,
   txBorrow,
   txRepay,
-  includeDcaFees,
-  rawSeries,
+  advancedMode,
   onStartChange,
   onEndChange,
   onInitialBTCChange,
@@ -60,179 +72,209 @@ export function ConfigCards({
   onVbytesPerTxChange,
   onTxBorrowChange,
   onTxRepayChange,
-  onIncludeDcaFeesChange,
+  onAdvancedModeChange,
 }: ConfigCardsProps) {
   return (
-    <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <Card className="lg:col-span-1">
-        <CardHeader>
-          <CardTitle>Range & Capital</CardTitle>
-          <CardDescription>
-            Subset the series and define initial allocation.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Start</Label>
-              <Input
-                value={start}
-                onChange={(e) => onStartChange(e.target.value)}
-                placeholder="YYYY-MM-DD"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>End</Label>
-              <Input
-                value={end}
-                onChange={(e) => onEndChange(e.target.value)}
-                placeholder="YYYY-MM-DD"
-              />
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>initialUSD</Label>
-              <Input
-                type="number"
-                value={initialUSD}
-                onChange={(e) => onInitialUSDChange(Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>initialBTC</Label>
-              <Input
-                type="number"
-                value={initialBTC}
-                onChange={(e) => onInitialBTCChange(Number(e.target.value))}
-              />
-            </div>
-          </div>
-
-          {rawSeries && (
-            <div className="text-xs text-muted-foreground">
-              Loaded: {rawSeries.length.toLocaleString("en-US")} rows ·
-              First {rawSeries[0].date} @ ${fmtNum(rawSeries[0].price)} ·
-              Last {rawSeries.at(-1)!.date} @ $
-              {fmtNum(rawSeries.at(-1)!.price)}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className="lg:col-span-1">
-        <CardHeader>
-          <CardTitle>Debt Policy</CardTitle>
-          <CardDescription>
-            LTV constraint via maxDebtPct + hysteresis band.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <Label>APR</Label>
-              <Input
-                type="number"
-                step="0.001"
-                value={apr}
-                onChange={(e) => onAprChange(Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>maxDebtPct</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={maxDebtPct}
-                onChange={(e) => onMaxDebtPctChange(Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>band</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={band}
-                onChange={(e) => onBandChange(Number(e.target.value))}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
-            Rule intuition: "-70% crash ⇒ collateral ratio ≥ 200%"
-            corresponds roughly to{" "}
-            <span className="font-medium text-foreground">
-              maxDebtPct ≈ 0.15
-            </span>
-            .
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="lg:col-span-1">
-        <CardHeader>
-          <CardTitle>Fees</CardTitle>
-          <CardDescription>
-            Bitcoin L1 fee model + apply to DCA.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>sat/vB</Label>
-              <Input
-                type="number"
-                value={satPerVb}
-                onChange={(e) => onSatPerVbChange(Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>vbytes/tx</Label>
-              <Input
-                type="number"
-                value={vbytesPerTx}
-                onChange={(e) => onVbytesPerTxChange(Number(e.target.value))}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>txBorrow</Label>
-              <Input
-                type="number"
-                value={txBorrow}
-                onChange={(e) => onTxBorrowChange(Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>txRepay</Label>
-              <Input
-                type="number"
-                value={txRepay}
-                onChange={(e) => onTxRepayChange(Number(e.target.value))}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between rounded-md border px-3 py-2">
-            <div>
-              <div className="text-sm font-medium">Apply fees to DCA</div>
-              <div className="text-xs text-muted-foreground">
-                Subtract on-chain fee from each periodic buy.
+    <div className="mt-6 space-y-3">
+      <div className="flex items-center justify-end gap-2 text-xs">
+        <span className={!advancedMode ? "font-semibold" : ""}>Lite</span>
+        <Switch checked={advancedMode} onCheckedChange={onAdvancedModeChange} />
+        <span className={advancedMode ? "font-semibold" : ""}>Pro</span>
+      </div>
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-4",
+          advancedMode ? "lg:grid-cols-3" : "lg:grid-cols-2",
+        )}
+      >
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Range & Capital</CardTitle>
+            <CardDescription>
+              Subset the series and define initial allocation.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="Start"
+                  tip="First date to include in the backtest (YYYY-MM-DD)."
+                />
+                <Input
+                  value={start}
+                  onChange={(e) => onStartChange(e.target.value)}
+                  placeholder="YYYY-MM-DD"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="End"
+                  tip="Last date to include in the backtest (YYYY-MM-DD)."
+                />
+                <Input
+                  value={end}
+                  onChange={(e) => onEndChange(e.target.value)}
+                  placeholder="YYYY-MM-DD"
+                />
               </div>
             </div>
-            <Switch
-              checked={includeDcaFees}
-              onCheckedChange={onIncludeDcaFeesChange}
-            />
-          </div>
-        </CardContent>
-      </Card>
+
+            <Separator />
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="initialUSD"
+                  tip="Cash allocated at start; auto-converted to BTC on day one."
+                />
+                <Input
+                  type="number"
+                  value={initialUSD}
+                  onChange={(e) => onInitialUSDChange(Number(e.target.value))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="initialBTC"
+                  tip="BTC allocated at start (kept as BTC)."
+                />
+                <Input
+                  type="number"
+                  value={initialBTC}
+                  onChange={(e) => onInitialBTCChange(Number(e.target.value))}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Debt Policy</CardTitle>
+            <CardDescription>
+              LTV constraint via maxDebtPct + hysteresis band.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div
+              className={`grid gap-3 ${advancedMode ? "grid-cols-3" : "grid-cols-1"}`}
+            >
+              {advancedMode && (
+                <div className="space-y-1.5">
+                  <InfoLabel
+                    label="APR"
+                    tip="Annualized borrow rate applied to outstanding debt."
+                  />
+                  <Input
+                    type="number"
+                    step="0.001"
+                    value={apr}
+                    onChange={(e) => onAprChange(Number(e.target.value))}
+                  />
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="maxDebtPct"
+                  tip="Max debt as % of collateral value (e.g., 0.15 = 15%)."
+                />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={maxDebtPct}
+                  onChange={(e) => onMaxDebtPctChange(Number(e.target.value))}
+                />
+              </div>
+              {advancedMode && (
+                <div className="space-y-1.5">
+                  <InfoLabel
+                    label="band"
+                    tip="Rebalance band; borrow/repay when LTV drifts beyond this band."
+                  />
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={band}
+                    onChange={(e) => onBandChange(Number(e.target.value))}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+              Rule intuition: "-70% crash & collateral ratio = 200%" corresponds
+              roughly to{" "}
+              <span className="font-medium text-foreground">
+                maxDebtPct ~ 0.15
+              </span>
+              .
+            </div>
+          </CardContent>
+        </Card>
+
+        {advancedMode && (
+          <Card className="lg:col-span-1">
+            <CardHeader>
+              <CardTitle>Fees</CardTitle>
+              <CardDescription>Bitcoin L1 fee model.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <InfoLabel
+                    label="sat/vB"
+                    tip="Fee rate in satoshis per virtual byte."
+                  />
+                  <Input
+                    type="number"
+                    value={satPerVb}
+                    onChange={(e) => onSatPerVbChange(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <InfoLabel
+                    label="vbytes/tx"
+                    tip="Estimated transaction size per borrow/repay or DCA."
+                  />
+                  <Input
+                    type="number"
+                    value={vbytesPerTx}
+                    onChange={(e) =>
+                      onVbytesPerTxChange(Number(e.target.value))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <InfoLabel
+                    label="txBorrow"
+                    tip="Number of on-chain tx per borrow event."
+                  />
+                  <Input
+                    type="number"
+                    value={txBorrow}
+                    onChange={(e) => onTxBorrowChange(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <InfoLabel
+                    label="txRepay"
+                    tip="Number of on-chain tx per repay event."
+                  />
+                  <Input
+                    type="number"
+                    value={txRepay}
+                    onChange={(e) => onTxRepayChange(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
-

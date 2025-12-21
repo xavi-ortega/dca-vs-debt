@@ -15,7 +15,9 @@ export function FreqSelect({ value, onChange }: Props) {
           <button
             key={f}
             className={`px-2 py-1 rounded-sm text-xs ${
-              value === f ? "bg-primary text-primary-foreground" : "text-foreground/80"
+              value === f
+                ? "bg-primary text-primary-foreground"
+                : "text-foreground/80"
             }`}
             onClick={() => onChange(f)}
             type="button"

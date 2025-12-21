@@ -29,9 +29,8 @@ export function detectColumns(header: string[]): {
 
   if (!dateCol || !priceCol) {
     throw new Error(
-      `Could not detect required columns.\nFound header: ${header.join(", ")}\nNeed date column (Start/End/Date/...) and price column (Close/Price/...).`
+      `Could not detect required columns.\nFound header: ${header.join(", ")}\nNeed date column (Start/End/Date/...) and price column (Close/Price/...).`,
     );
   }
   return { dateCol, priceCol };
 }
-

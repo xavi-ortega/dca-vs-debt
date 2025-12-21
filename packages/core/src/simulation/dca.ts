@@ -46,4 +46,3 @@ export function simulateDCA(
     finalValueUSD: btc * series.at(-1)!.price,
   };
 }
-

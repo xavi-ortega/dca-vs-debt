@@ -5,4 +5,3 @@ export type Column<T extends AnyRow> = {
   align?: "left" | "right";
   cell: (row: T) => string;
 };
-

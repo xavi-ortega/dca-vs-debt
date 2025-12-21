@@ -17,4 +17,3 @@ export function printDatasetTable(datasets: AssetDataset[]) {
   console.log(kleur.bold().underline("Datasets (./assets)"));
   console.log(t.toString());
 }
-

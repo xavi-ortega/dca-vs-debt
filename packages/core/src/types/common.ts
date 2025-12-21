@@ -21,4 +21,3 @@ export type CoreConfig = {
   txBorrow: number;
   txRepay: number;
 };
-

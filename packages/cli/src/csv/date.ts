@@ -9,4 +9,3 @@ export function toISODate(value: string): string {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
   throw new Error(`Unparseable date: ${value}`);
 }
-

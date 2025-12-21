@@ -4,4 +4,3 @@ export type AssetDataset = {
   fullPath: string;
   bytes: number;
 };
-

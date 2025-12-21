@@ -20,4 +20,3 @@ export function buildDebtReportRows(
     maxDebtSeen: dr.maxDebtSeen,
   }));
 }
-

@@ -33,4 +33,3 @@ export type DebtReportRow = {
   repays: number;
   maxDebtSeen: number;
 };
-

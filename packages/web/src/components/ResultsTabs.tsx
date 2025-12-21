@@ -1,16 +1,24 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "./DataTable.js";
 import { fmtBTC, fmtInt } from "@/lib/utils";
 import type { DebtRow, HeadRow, CrossRow } from "../types/index.js";
 
 interface ResultsTabsProps {
-  activeTab: "debt" | "head" | "cross";
-  onTabChange: (tab: "debt" | "head" | "cross") => void;
+  activeTab: "charts" | "debt" | "head" | "cross";
+  onTabChange: (tab: "charts" | "debt" | "head" | "cross") => void;
   debtRows: DebtRow[] | null;
   headRows: HeadRow[] | null;
   crossRows: CrossRow[] | null;
+  chartsContent?: React.ReactNode;
+  hasResults: boolean;
 }
 
 export function ResultsTabs({
@@ -19,15 +27,40 @@ export function ResultsTabs({
   debtRows,
   headRows,
   crossRows,
+  chartsContent,
+  hasResults,
 }: ResultsTabsProps) {
+  if (!hasResults) {
+    return (
+      <div className="mt-6">
+        <Card>
+          <CardContent className="py-6 text-sm text-muted-foreground">
+            Load a dataset and run the backtest to see charts and reports.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-6">
       <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as any)}>
         <TabsList>
+          <TabsTrigger value="charts">Charts</TabsTrigger>
           <TabsTrigger value="debt">Debt report</TabsTrigger>
           <TabsTrigger value="head">Head-to-head</TabsTrigger>
           <TabsTrigger value="cross">DCA cross</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="charts" className="mt-4">
+          {chartsContent || (
+            <Card>
+              <CardContent className="py-6 text-sm text-muted-foreground">
+                No charts available.
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
         <TabsContent value="debt" className="mt-4">
           <Card>
@@ -192,8 +225,7 @@ export function ResultsTabs({
             <CardHeader>
               <CardTitle>DCA Cross Table</CardTitle>
               <CardDescription>
-                For each debt frequency budget, compare multiple DCA
-                schedules.
+                For each debt frequency budget, compare multiple DCA schedules.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -247,4 +279,3 @@ export function ResultsTabs({
     </div>
   );
 }
-

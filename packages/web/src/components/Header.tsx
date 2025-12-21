@@ -1,6 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import type { Dataset } from "../types/index.js";
 
@@ -32,8 +38,8 @@ export function Header({
           Bitcoin Strategy Backtest
         </h1>
         <p className="text-sm text-muted-foreground">
-          Dashboard UI (no backend). Debt strategy vs DCA with optional
-          on-chain fees.
+          Dashboard UI (no backend). Debt strategy vs DCA with optional on-chain
+          fees.
         </p>
       </div>
 
@@ -67,4 +73,3 @@ export function Header({
     </div>
   );
 }
-

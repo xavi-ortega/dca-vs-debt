@@ -22,7 +22,9 @@ export function useBacktest() {
   const [debtRows, setDebtRows] = useState<DebtRow[] | null>(null);
   const [headRows, setHeadRows] = useState<HeadRow[] | null>(null);
   const [crossRows, setCrossRows] = useState<CrossRow[] | null>(null);
-  const [combinedBtcChart, setCombinedBtcChart] = useState<ChartRow[] | null>(null);
+  const [combinedBtcChart, setCombinedBtcChart] = useState<ChartRow[] | null>(
+    null,
+  );
   const [ltvEvents, setLtvEvents] = useState<LtvEvent[] | null>(null);
   const [priceSeries, setPriceSeries] = useState<PricePoint[] | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -32,7 +34,7 @@ export function useBacktest() {
     cfg: CoreConfig,
     start: string,
     end: string,
-    includeDcaFees: boolean
+    includeDcaFees: boolean,
   ) => {
     if (!rawSeries) return;
 
@@ -40,7 +42,7 @@ export function useBacktest() {
       const series = filterRange(rawSeries, start || null, end || null);
 
       const debtResults = FREQUENCIES.map((f: Frequency) =>
-        simulateDebtStrategy(series, cfg, f)
+        simulateDebtStrategy(series, cfg, f),
       );
       const debt = buildDebtReportRows(debtResults);
       const head = buildHeadToHeadRows(series, cfg, debtResults, {
@@ -52,10 +54,15 @@ export function useBacktest() {
         dcaTxCount: 1,
       });
 
-      const { combinedRows, events } = buildTimelineCharts(series, cfg, debtResults, {
-        includeFees: includeDcaFees,
-        dcaTxCount: 1,
-      });
+      const { combinedRows, events } = buildTimelineCharts(
+        series,
+        cfg,
+        debtResults,
+        {
+          includeFees: includeDcaFees,
+          dcaTxCount: 1,
+        },
+      );
       setPriceSeries(series.map((s) => ({ date: s.date, price: s.price })));
 
       setDebtRows(debt);
@@ -66,8 +73,8 @@ export function useBacktest() {
 
       setStatus(
         `Backtest ran on ${series.length.toLocaleString(
-          "en-US"
-        )} days (${series[0].date} - ${series.at(-1)!.date}).`
+          "en-US",
+        )} days (${series[0].date} - ${series.at(-1)!.date}).`,
       );
     } catch (e: any) {
       setStatus(`Error: ${String(e?.message ?? e)}`);
@@ -99,14 +106,15 @@ function buildTimelineCharts(
   series: SeriesPoint[],
   cfg: CoreConfig,
   debtResults: ReturnType<typeof simulateDebtStrategy>[],
-  opts: { includeFees: boolean; dcaTxCount: number }
+  opts: { includeFees: boolean; dcaTxCount: number },
 ) {
   const combined = new Map<string, ChartRow>();
   const events: LtvEvent[] = [];
 
   // Budget per frequency comes from debt strategy external spend.
   const budgetByFreq = new Map<Frequency, number>();
-  for (const dr of debtResults) budgetByFreq.set(dr.freq as Frequency, dr.externalTotalUSD);
+  for (const dr of debtResults)
+    budgetByFreq.set(dr.freq as Frequency, dr.externalTotalUSD);
 
   for (const freq of FREQUENCIES) {
     const debtTimeline = simulateDebtTimeline(series, cfg, freq);
@@ -115,7 +123,7 @@ function buildTimelineCharts(
       cfg,
       freq,
       budgetByFreq.get(freq) ?? 0,
-      opts
+      opts,
     );
 
     for (const p of debtTimeline) {
@@ -134,7 +142,7 @@ function buildTimelineCharts(
   }
 
   const combinedRows = Array.from(combined.values()).sort((a, b) =>
-    String(a.date).localeCompare(String(b.date))
+    String(a.date).localeCompare(String(b.date)),
   );
 
   return { combinedRows, events };
@@ -143,7 +151,7 @@ function buildTimelineCharts(
 function simulateDebtTimeline(
   series: SeriesPoint[],
   cfg: CoreConfig,
-  freq: Frequency
+  freq: Frequency,
 ): DebtTimelinePoint[] {
   const {
     initialBTC,
@@ -231,7 +239,7 @@ function simulateDcaTimeline(
   cfg: CoreConfig,
   freq: Frequency,
   externalBudgetUSD: number,
-  opts: { includeFees: boolean; dcaTxCount: number }
+  opts: { includeFees: boolean; dcaTxCount: number },
 ): DcaTimelinePoint[] {
   const { includeFees = false, dcaTxCount = 1 } = opts;
 

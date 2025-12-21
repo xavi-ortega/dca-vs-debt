@@ -16,4 +16,3 @@ export function filterRange(
   }
   return out;
 }
-

@@ -16,10 +16,7 @@ import {
 import { parseCSV, detectColumns, toISODate } from "./csv/index.js";
 import { parseArgs } from "./args/index.js";
 import { fmtNum, fmtInt, fmtBTC, fmtBytes } from "./format/index.js";
-import {
-  listAssetDatasets,
-  chooseDataset,
-} from "./assets/index.js";
+import { listAssetDatasets, chooseDataset } from "./assets/index.js";
 import {
   printTable,
   getDebtTableColumns,
@@ -74,42 +71,42 @@ async function main() {
   // Header / config
   console.log(kleur.bold("\nBitcoin Strategy CLI"));
   console.log(
-    kleur.gray(`Dataset: ${chosen.name}  (${fmtBytes(chosen.bytes)})`)
+    kleur.gray(`Dataset: ${chosen.name}  (${fmtBytes(chosen.bytes)})`),
   );
   console.log(kleur.gray(`File:    ${csvPath}`));
   console.log(
     kleur.gray(
-      `Range:   ${series[0].date} -> ${series.at(-1)!.date} (${series.length.toLocaleString("en-US")} days)`
-    )
+      `Range:   ${series[0].date} -> ${series.at(-1)!.date} (${series.length.toLocaleString("en-US")} days)`,
+    ),
   );
   console.log(
     kleur.gray(
-      `Price:   $${fmtNum(series[0].price)} -> $${fmtNum(series.at(-1)!.price)}`
-    )
+      `Price:   $${fmtNum(series[0].price)} -> $${fmtNum(series.at(-1)!.price)}`,
+    ),
   );
   console.log(
     kleur.gray(
-      `Init:    initialBTC=${cfg.initialBTC}  initialUSD=$${fmtNum(cfg.initialUSD)}`
-    )
+      `Init:    initialBTC=${cfg.initialBTC}  initialUSD=$${fmtNum(cfg.initialUSD)}`,
+    ),
   );
   console.log(
     kleur.gray(
-      `Debt:    APR=${fmtNum(cfg.apr * 100)}%  maxDebtPct=${cfg.maxDebtPct}  band=${cfg.band}`
-    )
+      `Debt:    APR=${fmtNum(cfg.apr * 100)}%  maxDebtPct=${cfg.maxDebtPct}  band=${cfg.band}`,
+    ),
   );
   console.log(
     kleur.gray(
-      `Fees:    sat/vB=${cfg.satPerVb}  vbytes=${cfg.vbytesPerTx}  txBorrow=${cfg.txBorrow}  txRepay=${cfg.txRepay}`
-    )
+      `Fees:    sat/vB=${cfg.satPerVb}  vbytes=${cfg.vbytesPerTx}  txBorrow=${cfg.txBorrow}  txRepay=${cfg.txRepay}`,
+    ),
   );
   console.log(
     kleur.gray(
-      `DCA:     includeFees=${dcaOpts.includeFees}  dcaTxCount=${dcaOpts.dcaTxCount}`
-    )
+      `DCA:     includeFees=${dcaOpts.includeFees}  dcaTxCount=${dcaOpts.dcaTxCount}`,
+    ),
   );
 
   const debtResults = FREQUENCIES.map((f: Frequency) =>
-    simulateDebtStrategy(series, cfg, f)
+    simulateDebtStrategy(series, cfg, f),
   );
   const debtRows = buildDebtReportRows(debtResults);
   const headRows = buildHeadToHeadRows(series, cfg, debtResults, dcaOpts);
@@ -120,16 +117,15 @@ async function main() {
   printTable(
     "Head-to-Head (Debt vs DCA same freq)",
     getHeadToHeadTableColumns(),
-    headRows
+    headRows,
   );
 
   printTable(
     "DCA Cross-Table (budget from Debt Freq)",
     getDcaCrossTableColumns(),
-    crossRows
+    crossRows,
   );
 }
 
 // Export main for use in index.ts
 export { main };
-

@@ -8,4 +8,3 @@ export function fmtBytes(bytes: number): string {
   }
   return `${b.toFixed(u === 0 ? 0 : 1)} ${units[u]}`;
 }
-

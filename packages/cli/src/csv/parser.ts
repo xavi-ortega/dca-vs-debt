@@ -18,4 +18,3 @@ export function parseCSV(text: string): {
   }
   return { header, rows };
 }
-

@@ -2,10 +2,13 @@ import React from "react";
 import type { HeadRow } from "@/types";
 import type { LtvEvent, PricePoint } from "@/hooks/useBacktest.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CombinedBtcChart } from "./CombinedBtcChart";
-import { HeadHeatmap } from "./ComparisonCharts";
-import { PriceChart } from "./PriceChart";
-import { PieComparison } from "./PieComparison";
+import { CombinedBtcChart } from "./CombinedBtcChart.js";
+import { HeadHeatmap } from "./HeadHeatmap.js";
+import { PriceChart } from "./PriceChart.js";
+import { PieComparison } from "./PieComparison.js";
+import { freqLabel } from "@/lib/frequency";
+import { freqColor, sortByFrequency } from "@/lib/frequency.js";
+import { fmtBTC, fmtInt } from "@/lib/utils.js";
 
 type Props = {
   combinedBtcChart: Record<string, number | string>[] | null;
@@ -14,10 +17,21 @@ type Props = {
   headRows: HeadRow[] | null;
 };
 
-export function ChartsPanel({ combinedBtcChart, ltvEvents, priceSeries, headRows }: Props) {
-  const hasData = Boolean(combinedBtcChart || ltvEvents || headRows || priceSeries);
+export function ChartsPanel({
+  combinedBtcChart,
+  ltvEvents,
+  priceSeries,
+  headRows,
+}: Props) {
+  const hasData = Boolean(
+    combinedBtcChart || ltvEvents || headRows || priceSeries,
+  );
 
   if (!hasData) return null;
+
+  const summaryContent = headRows
+    ? buildSummary(headRows)
+    : { title: "Summary", body: "Run the backtest to see the summary." };
 
   return (
     <div className="mt-10 space-y-6">
@@ -30,13 +44,72 @@ export function ChartsPanel({ combinedBtcChart, ltvEvents, priceSeries, headRows
             Net value deltas and win counts across cadences.
           </p>
         </CardHeader>
-        <CardContent className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+        <CardContent className="grid gap-6 lg:grid-cols-2">
+          <div>
             <PieComparison headRows={headRows} embedded />
+            <HeadHeatmap headRows={headRows} embedded />
           </div>
-          <HeadHeatmap headRows={headRows} embedded />
+
+          <div className="space-y-2 rounded-lg border border-border/70 p-4 text-sm">
+            <div className="text-xs uppercase text-muted-foreground tracking-wide">
+              Summary
+            </div>
+            <div className="font-semibold">{summaryContent.title}</div>
+            <div className="text-muted-foreground text-xs leading-relaxed">
+              {summaryContent.body}
+            </div>
+
+            <div className="space-y-2">
+              {sortByFrequency(headRows).map((row) => (
+                <div
+                  key={row.freq}
+                  className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2 text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: freqColor[row.freq] }}
+                    />
+                    <div>
+                      <div className="font-medium">{freqLabel[row.freq]}</div>
+                      <div className="text-muted-foreground text-xs">
+                        Debt BTC {fmtBTC(row.debtBTC)} vs DCA BTC{" "}
+                        {fmtBTC(row.dcaBTC)}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="text-right text-xs font-medium"
+                    style={{
+                      color:
+                        row.deltaNetUSD > 0
+                          ? "var(--color-chart-1)"
+                          : row.deltaNetUSD < 0
+                            ? "var(--color-chart-2)"
+                            : "var(--muted-foreground)",
+                    }}
+                  >
+                    Delta Net: {fmtInt(row.deltaNetUSD)} $
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
   );
+}
+
+function buildSummary(headRows: HeadRow[]) {
+  const debtWins = headRows.filter((r) => r.deltaNetUSD > 0).length;
+  const dcaWins = headRows.filter((r) => r.deltaNetUSD < 0).length;
+  const best = [...headRows].sort((a, b) => b.deltaNetUSD - a.deltaNetUSD)[0];
+
+  return {
+    title: best
+      ? `${freqLabel[best.freq]} leads by ${best.deltaNetUSD.toFixed(0)}$`
+      : "No data",
+    body: `Debt better in ${debtWins} cadences, DCA better in ${dcaWins}. Best delta: ${freqLabel[best?.freq ?? "daily"] ?? ""} (${best?.deltaNetUSD?.toFixed(0) ?? 0}$).`,
+  };
 }

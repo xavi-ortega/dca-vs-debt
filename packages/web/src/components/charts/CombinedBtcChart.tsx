@@ -12,12 +12,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fmtBTC } from "@/lib/utils";
 import { freqColor, freqLabel, FREQ_ORDER } from "@/lib/frequency";
-import { FreqSelect } from "./FreqSelect";
+import { FreqSelect } from "./FreqSelect.js";
 
 type ChartRow = Record<string, number | string>;
 
 const emptyState = (
-  <div className="text-sm text-muted-foreground">Run the backtest to see charts.</div>
+  <div className="text-sm text-muted-foreground">
+    Run the backtest to see charts.
+  </div>
 );
 
 export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
@@ -55,7 +57,10 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
               <XAxis dataKey="date" minTickGap={28} />
               <YAxis tickFormatter={(v) => fmtBTC(Number(v))} width={90} />
               <Tooltip
-                formatter={(value: any, name: string) => [fmtBTC(Number(value)), name]}
+                formatter={(value: any, name?: string) => [
+                  fmtBTC(Number(value)),
+                  name ?? "",
+                ]}
                 labelFormatter={(lbl) => `Date: ${lbl}`}
               />
               <Legend />

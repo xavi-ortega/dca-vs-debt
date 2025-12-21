@@ -16,4 +16,3 @@ export function fmtBTC(n: number): string {
   const digits = abs >= 100 ? 4 : abs >= 1 ? 6 : 8;
   return fmtNum(n, digits);
 }
-
