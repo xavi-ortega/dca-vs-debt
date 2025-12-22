@@ -169,17 +169,6 @@ export default function App() {
             />
           }
         />
-
-        <div className="mt-10 text-xs text-muted-foreground text-center">
-          Made with ♥ by{" "}
-          <a
-            className="underline"
-            target="_blank"
-            href="https://github.com/xavi-ortega"
-          >
-            Xavi Ortega
-          </a>
-        </div>
       </div>
     </div>
   );
