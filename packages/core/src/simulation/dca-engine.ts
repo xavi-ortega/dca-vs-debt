@@ -1,5 +1,10 @@
 import type { SeriesPoint, CoreConfig, Frequency } from "../types/common.js";
-import type { DcaLedger, DcaOptions, DcaResult, DcaState } from "../types/dca.js";
+import type {
+  DcaLedger,
+  DcaOptions,
+  DcaResult,
+  DcaState,
+} from "../types/dca.js";
 import { isRebalanceDay } from "../utils/frequency.js";
 import { btcFeeUSD } from "../utils/fees.js";
 
@@ -26,7 +31,13 @@ export class DcaEngine {
   private state: DcaState;
   private ledger: DcaLedger;
 
-  constructor({ series, config, freq, externalBudgetUSD, options }: DcaEngineParams) {
+  constructor({
+    series,
+    config,
+    freq,
+    externalBudgetUSD,
+    options,
+  }: DcaEngineParams) {
     this.series = series;
     this.freq = freq;
     this.cfg = config;
@@ -42,7 +53,9 @@ export class DcaEngine {
   }
 
   run(): DcaResult {
-    const buyDays = this.series.filter((d) => isRebalanceDay(this.freq, d.date));
+    const buyDays = this.series.filter((d) =>
+      isRebalanceDay(this.freq, d.date),
+    );
     if (buyDays.length === 0) return this.toResult(this.series.at(-1)!.price);
 
     const perBuy = this.budgetUSD / buyDays.length;

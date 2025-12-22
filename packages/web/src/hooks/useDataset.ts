@@ -11,7 +11,11 @@ export function useDatasets(): Dataset[] {
         label: "BTC daily (2010-07-17 → 2025-12-20)",
         url: "/datasets/bitcoin_2010-07-17_2025-12-20.csv",
       },
-      { id: "btc_2026_2040", label: "BTC GPT-5.2 bullish forecast (2026-01-01 → 2040-12-20)", url: "/datasets/btc_daily_ohlc_2026_2040_bullish_with_drawdowns.csv" },
+      {
+        id: "btc_2026_2040",
+        label: "BTC GPT-5.2 bullish forecast (2026-01-01 → 2040-12-20)",
+        url: "/datasets/btc_daily_ohlc_2026_2040_bullish_with_drawdowns.csv",
+      },
     ],
     [],
   );

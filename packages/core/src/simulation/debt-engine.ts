@@ -1,5 +1,10 @@
 import type { SeriesPoint, CoreConfig, Frequency } from "../types/common.js";
-import type { DebtLedger, DebtPolicy, DebtResult, DebtState } from "../types/debt.js";
+import type {
+  DebtLedger,
+  DebtPolicy,
+  DebtResult,
+  DebtState,
+} from "../types/debt.js";
 import { btcFeeUSD } from "../utils/fees.js";
 import { isRebalanceDay } from "../utils/frequency.js";
 
@@ -29,7 +34,10 @@ export class DebtEngine {
   private readonly series: SeriesPoint[];
   private readonly freq: Frequency;
   private readonly policy: DebtPolicy;
-  private readonly feeInputs: Pick<CoreConfig, "satPerVb" | "vbytesPerTx" | "txBorrow" | "txRepay">;
+  private readonly feeInputs: Pick<
+    CoreConfig,
+    "satPerVb" | "vbytesPerTx" | "txBorrow" | "txRepay"
+  >;
   private readonly dailyRate: number;
 
   private state: DebtState;
