@@ -3,7 +3,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  ReferenceLine,
+  ReferenceArea,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -33,6 +33,29 @@ export function PriceChart({
     () => (ltvEvents ? ltvEvents.filter((e) => e.freq === freq) : []),
     [ltvEvents, freq],
   );
+  const eventSpans = useMemo(() => {
+    if (!filteredEvents.length) return [];
+    const sorted = [...filteredEvents].sort((a, b) =>
+      a.date.localeCompare(b.date),
+    );
+    const spans: { start: number; end: number }[] = [];
+    const toTs = (d: string) => new Date(d + "T00:00:00Z").getTime();
+
+    let current = { start: toTs(sorted[0].date), end: toTs(sorted[0].date) };
+    for (let i = 1; i < sorted.length; i++) {
+      const ts = toTs(sorted[i].date);
+      const prev = toTs(sorted[i - 1].date);
+      const oneDay = 24 * 60 * 60 * 1000;
+      if (ts - prev <= oneDay * 1.1) {
+        current.end = ts;
+      } else {
+        spans.push(current);
+        current = { start: ts, end: ts };
+      }
+    }
+    spans.push(current);
+    return spans;
+  }, [filteredEvents]);
   const rows = useMemo(
     () =>
       data?.map((d) => ({
@@ -79,13 +102,15 @@ export function PriceChart({
                   `Date: ${new Date(Number(lbl)).toISOString().slice(0, 10)}`
                 }
               />
-              {filteredEvents.map((e) => (
-                <ReferenceLine
-                  key={`${e.date}-${e.freq}`}
-                  x={new Date(e.date + "T00:00:00Z").getTime()}
+              {eventSpans.map((span, idx) => (
+                <ReferenceArea
+                  key={`span-${idx}`}
+                  x1={span.start}
+                  x2={span.end}
                   stroke="var(--color-destructive)"
-                  strokeDasharray="3 3"
-                  strokeOpacity={0.6}
+                  fill="var(--color-destructive)"
+                  fillOpacity={0.08}
+                  strokeOpacity={0.5}
                   ifOverflow="extendDomain"
                 />
               ))}
