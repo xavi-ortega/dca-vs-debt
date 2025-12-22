@@ -4,6 +4,17 @@
   "private": true,
   "description": "Simulate and compare Bitcoin debt strategies and DCA with realistic costs, fees, and long-term risk constraints.",
   "main": "index.js",
+  "homepage": "https://bitcoin-strategy.vercel.app/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xavi-ortega/bitcoin-strategy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xavi-ortega/bitcoin-strategy/issues"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "keywords": [
     "bitcoin",
     "btc",
@@ -27,7 +38,7 @@
     "lint": "npm run lint --workspaces"
   },
   "author": "Xavi Ortega",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
