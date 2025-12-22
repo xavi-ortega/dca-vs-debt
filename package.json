@@ -21,8 +21,8 @@
     "packages/web"
   ],
   "scripts": {
-"build": "npm -w packages/core run build && npm -w packages/cli run build && npm -w packages/web run build",   
- "cli": "npm --workspace packages/cli run cli --",
+    "build": "npm -w packages/core run build && npm -w packages/cli run build && npm -w packages/web run build",
+    "cli": "npm --workspace packages/cli run cli --",
     "web": "npm --workspace packages/web run dev",
     "lint": "npm run lint --workspaces"
   },

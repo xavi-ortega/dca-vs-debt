@@ -14,7 +14,7 @@ export function useDatasets(): Dataset[] {
       {
         id: "btc_2026_2040",
         label: "BTC GPT-5.2 bullish forecast (2026-01-01 → 2040-12-20)",
-        url: "/datasets/btc_daily_ohlc_2026_2040_bullish_with_drawdowns.csv",
+        url: "/datasets/btc_daily_ohlc_2026_2040_bull_bear_fibonacci.csv",
       },
     ],
     [],
