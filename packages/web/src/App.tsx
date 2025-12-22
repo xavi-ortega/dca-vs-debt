@@ -81,6 +81,14 @@ export default function App() {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
+  // When a dataset loads, prefill the date range to its bounds.
+  useEffect(() => {
+    if (rawSeries?.length) {
+      setStart(rawSeries[0].date);
+      setEnd(rawSeries.at(-1)!.date);
+    }
+  }, [rawSeries]);
+
   const handleLoad = () => {
     loadDataset(dataset);
   };

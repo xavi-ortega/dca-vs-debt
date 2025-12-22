@@ -7,6 +7,13 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DataTable } from "./DataTable.js";
 import { fmtBTC, fmtUSD, fmtInt } from "@/lib/utils";
 import type { DebtRow, HeadRow, CrossRow } from "../types/index.js";
@@ -45,12 +52,30 @@ export function ResultsTabs({
   return (
     <div className="mt-6">
       <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as any)}>
-        <TabsList>
-          <TabsTrigger value="charts">Charts</TabsTrigger>
-          <TabsTrigger value="debt">Debt report</TabsTrigger>
-          <TabsTrigger value="head">Head-to-head</TabsTrigger>
-          <TabsTrigger value="cross">DCA cross</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-wrap items-center gap-3">
+          <TabsList className="hidden flex-wrap sm:inline-flex">
+            <TabsTrigger value="charts">Charts</TabsTrigger>
+            <TabsTrigger value="debt">Debt report</TabsTrigger>
+            <TabsTrigger value="head">Head-to-head</TabsTrigger>
+            <TabsTrigger value="cross">DCA cross</TabsTrigger>
+          </TabsList>
+          <div className="sm:hidden w-full">
+            <Select
+              value={activeTab}
+              onValueChange={(v) => onTabChange(v as any)}
+            >
+              <SelectTrigger className="w-full" aria-label="Select report">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="charts">Charts</SelectItem>
+                <SelectItem value="debt">Debt report</SelectItem>
+                <SelectItem value="head">Head-to-head</SelectItem>
+                <SelectItem value="cross">DCA cross</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         <TabsContent value="charts" className="mt-4">
           {chartsContent || (
