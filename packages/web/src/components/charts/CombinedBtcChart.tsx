@@ -72,7 +72,10 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
   }, [data, freq]);
 
   const lineLookup = useMemo(() => {
-    const m = new Map<string, { stroke: string; dashed: boolean; name: string }>();
+    const m = new Map<
+      string,
+      { stroke: string; dashed: boolean; name: string }
+    >();
     lines.forEach((l) =>
       m.set(l.dataKey, { stroke: l.stroke, dashed: l.dashed, name: l.name }),
     );

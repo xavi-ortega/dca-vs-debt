@@ -29,9 +29,9 @@ export function useBacktest() {
   const [amortizationEvents, setAmortizationEvents] = useState<
     StrategyEvent[] | null
   >(null);
-  const [refinanceEvents, setRefinanceEvents] = useState<StrategyEvent[] | null>(
-    null,
-  );
+  const [refinanceEvents, setRefinanceEvents] = useState<
+    StrategyEvent[] | null
+  >(null);
   const [priceSeries, setPriceSeries] = useState<PricePoint[] | null>(null);
   const [status, setStatus] = useState<string>("");
 
@@ -101,11 +101,11 @@ export function useBacktest() {
     crossRows,
     combinedBtcChart,
     ltvEvents,
-  amortizationEvents,
-  refinanceEvents,
-  priceSeries,
-  status,
-  runBacktest,
+    amortizationEvents,
+    refinanceEvents,
+    priceSeries,
+    status,
+    runBacktest,
   };
 }
 
@@ -129,8 +129,11 @@ function buildTimelineCharts(
     budgetByFreq.set(dr.freq as Frequency, dr.externalTotalUSD);
 
   for (const freq of FREQUENCIES) {
-    const { points: debtTimeline, amortizations, refinances } =
-      simulateDebtTimeline(series, cfg, freq);
+    const {
+      points: debtTimeline,
+      amortizations,
+      refinances,
+    } = simulateDebtTimeline(series, cfg, freq);
     amortizationEvents.push(...amortizations);
     refinanceEvents.push(...refinances);
     const dcaTimeline = simulateDcaTimeline(

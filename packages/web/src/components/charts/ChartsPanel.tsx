@@ -48,7 +48,7 @@ export function ChartsPanel({
         amortizationEvents={amortizationEvents}
         refinanceEvents={refinanceEvents}
       />
-     <CombinedBtcChart data={combinedBtcChart} />
+      <CombinedBtcChart data={combinedBtcChart} />
       <Card>
         <CardHeader>
           <CardTitle>Performance overview</CardTitle>
@@ -84,7 +84,8 @@ export function ChartsPanel({
                       <div>
                         <div className="font-medium">{freqLabel[row.freq]}</div>
                         <div className="text-muted-foreground text-xs">
-                          Debt {fmtAsset(row.debtBTC)} vs DCA {fmtAsset(row.dcaBTC)}
+                          Debt {fmtAsset(row.debtBTC)} vs DCA{" "}
+                          {fmtAsset(row.dcaBTC)}
                         </div>
                       </div>
                     </div>

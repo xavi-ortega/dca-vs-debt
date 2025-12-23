@@ -8,13 +8,18 @@ export function useDatasets(): Dataset[] {
     () => [
       {
         id: "asset_2010_2025",
-        label: "Asset daily (2010-07-17 → 2025-12-20)",
+        label: "BTC daily (2010-07-17 → 2025-12-20)",
         url: "/datasets/bitcoin_2010-07-17_2025-12-20.csv",
       },
       {
         id: "asset_2026_2040",
-        label: "Asset bullish forecast (2026-01-01 → 2040-12-20)",
+        label: "BTC bullish forecast (2026-01-01 → 2040-12-20)",
         url: "/datasets/btc_daily_ohlc_2026_2040_bull_bear_fibonacci.csv",
+      },
+      {
+        id: "gold_2015_2025",
+        label: "Gold daily (2015-12-23 → 2025-12-23)",
+        url: "/datasets/gold-chart_20251223T084157.csv",
       },
     ],
     [],

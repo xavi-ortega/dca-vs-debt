@@ -267,14 +267,14 @@ export function ResultsTabs({
                       key: "budgetUSD",
                       label: "Budget $",
                       align: "right",
-                  render: (r) => fmtUSD(r.budgetUSD, 0, 0),
-                },
-                {
-                  key: "dcaBTCFinal",
-                  label: "DCA asset",
-                  align: "right",
-                  render: (r) => fmtAsset(r.dcaBTCFinal),
-                },
+                      render: (r) => fmtUSD(r.budgetUSD, 0, 0),
+                    },
+                    {
+                      key: "dcaBTCFinal",
+                      label: "DCA asset",
+                      align: "right",
+                      render: (r) => fmtAsset(r.dcaBTCFinal),
+                    },
                     {
                       key: "dcaBuys",
                       label: "Buys",

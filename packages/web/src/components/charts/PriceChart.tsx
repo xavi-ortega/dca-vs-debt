@@ -140,9 +140,7 @@ export function PriceChart({
 
   const refinancePoints = useMemo(() => {
     const toPoint = (d: string) => priceLookup.get(d) ?? null;
-    return filteredRefinances
-      .map((e) => toPoint(e.date))
-      .filter(Boolean) as {
+    return filteredRefinances.map((e) => toPoint(e.date)).filter(Boolean) as {
       ts: number;
       priceValue: number;
     }[];
@@ -194,23 +192,29 @@ export function PriceChart({
       { liquidations: LtvEvent[]; amortizations: number; refinances: number }
     >();
     filteredEvents.forEach((e) => {
-      const entry =
-        map.get(e.date) ??
-        { liquidations: [], amortizations: 0, refinances: 0 };
+      const entry = map.get(e.date) ?? {
+        liquidations: [],
+        amortizations: 0,
+        refinances: 0,
+      };
       entry.liquidations.push(e);
       map.set(e.date, entry);
     });
     filteredAmortizations.forEach((e) => {
-      const entry =
-        map.get(e.date) ??
-        { liquidations: [], amortizations: 0, refinances: 0 };
+      const entry = map.get(e.date) ?? {
+        liquidations: [],
+        amortizations: 0,
+        refinances: 0,
+      };
       entry.amortizations += 1;
       map.set(e.date, entry);
     });
     filteredRefinances.forEach((e) => {
-      const entry =
-        map.get(e.date) ??
-        { liquidations: [], amortizations: 0, refinances: 0 };
+      const entry = map.get(e.date) ?? {
+        liquidations: [],
+        amortizations: 0,
+        refinances: 0,
+      };
       entry.refinances += 1;
       map.set(e.date, entry);
     });
@@ -327,9 +331,7 @@ export function PriceChart({
               <div className="flex items-center gap-2">
                 <span className="font-medium">
                   Refinance
-                  {dayEvents.refinances > 1
-                    ? ` x${dayEvents.refinances}`
-                    : ""}
+                  {dayEvents.refinances > 1 ? ` x${dayEvents.refinances}` : ""}
                 </span>
               </div>
             </div>
@@ -409,10 +411,10 @@ export function PriceChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Asset price</CardTitle>
+        <CardTitle>Asset price & risk events</CardTitle>
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-muted-foreground">
-            Spot price with liquidation-risk moments for the selected cadence.
+            Spot price with liquidation windows and strategy actions for the selected cadence.
           </p>
           <FreqSelect value={freq} onChange={setFreq} />
         </div>
@@ -486,22 +488,21 @@ export function PriceChart({
                     activeShape={false}
                   />
                 )}
-              {!hiddenKeys.has("refinance") &&
-                refinancePoints.length > 0 && (
-                  <Scatter
-                    name="Refinance"
-                    data={refinancePoints}
-                    fill={REFINANCE_COLOR}
-                    stroke={REFINANCE_COLOR}
-                    dataKey="priceValue"
-                    yAxisId="price"
-                    tooltipType="none"
-                    line={false}
-                    isAnimationActive={false}
-                    className="pointer-events-none"
-                    activeShape={false}
-                  />
-                )}
+              {!hiddenKeys.has("refinance") && refinancePoints.length > 0 && (
+                <Scatter
+                  name="Refinance"
+                  data={refinancePoints}
+                  fill={REFINANCE_COLOR}
+                  stroke={REFINANCE_COLOR}
+                  dataKey="priceValue"
+                  yAxisId="price"
+                  tooltipType="none"
+                  line={false}
+                  isAnimationActive={false}
+                  className="pointer-events-none"
+                  activeShape={false}
+                />
+              )}
               {!hiddenKeys.has("price") && (
                 <Line
                   type="monotone"

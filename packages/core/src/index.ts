@@ -12,11 +12,7 @@ export type {
 } from "./types/index.js";
 
 // Re-export all utilities
-export {
-  FREQUENCIES,
-  isRebalanceDay,
-  filterRange,
-} from "./utils/index.js";
+export { FREQUENCIES, isRebalanceDay, filterRange } from "./utils/index.js";
 
 // Re-export all simulations
 export { simulateDebtStrategy, simulateDCA } from "./simulation/index.js";

@@ -38,7 +38,8 @@ export function Header({
           DCA vs Debt Backtest
         </h1>
         <p className="text-sm text-muted-foreground">
-          Dashboard UI (no backend). Debt strategy vs DCA with optional fees for any asset.
+          Dashboard UI (no backend). Debt strategy vs DCA with optional fees for
+          any asset.
         </p>
       </div>
 
