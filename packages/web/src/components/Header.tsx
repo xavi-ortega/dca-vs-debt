@@ -8,15 +8,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip.js";
 import type { Dataset } from "../types/index.js";
 
 interface HeaderProps {
   datasets: Dataset[];
   datasetId: string;
   onDatasetChange: (id: string) => void;
+  hasUploaded: boolean;
   darkMode: boolean;
   onDarkModeChange: (dark: boolean) => void;
   onLoad: () => void;
+  onUpload: (file: File) => void;
   onRun: () => void;
   canRun: boolean;
 }
@@ -25,12 +33,23 @@ export function Header({
   datasets,
   datasetId,
   onDatasetChange,
+  hasUploaded,
   darkMode,
   onDarkModeChange,
   onLoad,
+  onUpload,
   onRun,
   canRun,
 }: HeaderProps) {
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onUpload(file);
+    // Reset so the same file can be selected twice if needed.
+    e.target.value = "";
+  };
+
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div>
@@ -59,8 +78,34 @@ export function Header({
                 {d.label}
               </SelectItem>
             ))}
+            {hasUploaded && (
+              <SelectItem value="uploaded">Uploaded CSV</SelectItem>
+            )}
           </SelectContent>
         </Select>
+
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Upload CSV
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="center">
+              Upload a daily CSV with columns: date, price. Formats like 6,849.09 are accepted.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={handleFileChange}
+        />
 
         <Button variant="secondary" onClick={onLoad}>
           Load

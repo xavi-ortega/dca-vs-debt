@@ -9,9 +9,9 @@ import { useDatasets, useDatasetLoader, useBacktest } from "./hooks/index.js";
 export default function App() {
   const datasets = useDatasets();
   const [datasetId, setDatasetId] = useState(datasets[0]?.id ?? "");
-  const dataset = datasets.find((d) => d.id === datasetId)!;
+  const dataset = datasets.find((d) => d.id === datasetId);
 
-  const { rawSeries, status, loadDataset } = useDatasetLoader();
+  const { rawSeries, status, loadDataset, loadFile } = useDatasetLoader();
   const {
     debtRows,
     headRows,
@@ -87,8 +87,18 @@ export default function App() {
     }
   }, [rawSeries]);
 
+  const [hasUploaded, setHasUploaded] = useState(false);
+
   const handleLoad = () => {
+    if (datasetId === "uploaded") return;
+    if (!dataset) return;
     loadDataset(dataset);
+  };
+
+  const handleUpload = async (file: File) => {
+    await loadFile(file);
+    setHasUploaded(true);
+    setDatasetId("uploaded");
   };
 
   const handleRun = () => {
@@ -106,9 +116,11 @@ export default function App() {
           datasets={datasets}
           datasetId={datasetId}
           onDatasetChange={setDatasetId}
+          hasUploaded={hasUploaded}
           darkMode={darkMode}
           onDarkModeChange={setDarkMode}
           onLoad={handleLoad}
+          onUpload={handleUpload}
           onRun={handleRun}
           canRun={canRun}
         />

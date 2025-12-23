@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import type { SeriesPoint } from "@dca-vs-debt/core";
-import { fetchCsvSeries } from "@/lib/csv";
+import { fetchCsvSeries, parseCsvText } from "@/lib/csv";
 import type { Dataset } from "../types/index.js";
 
 export function useDatasets(): Dataset[] {
@@ -37,6 +37,22 @@ export function useDatasetLoader() {
     "Select a dataset and click Load.",
   );
 
+  const loadFile = async (file: File) => {
+    try {
+      setStatus(`Loading CSV: ${file.name}…`);
+      setRawSeries(null);
+      const text = await file.text();
+      const series = parseCsvText(text, file.name);
+      setRawSeries(series);
+      setStatus(
+        `Loaded ${series.length.toLocaleString("en-US")} rows (${series[0].date} → ${series.at(-1)!.date}) from ${file.name}.`,
+      );
+    } catch (e: any) {
+      setStatus(`Error: ${String(e?.message ?? e)}`);
+      setRawSeries(null);
+    }
+  };
+
   const loadDataset = async (dataset: Dataset) => {
     try {
       setStatus("Loading CSV…");
@@ -54,5 +70,5 @@ export function useDatasetLoader() {
     }
   };
 
-  return { rawSeries, status, loadDataset };
+  return { rawSeries, status, loadDataset, loadFile };
 }

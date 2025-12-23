@@ -1,28 +1,24 @@
 import Papa from "papaparse";
 import type { SeriesPoint } from "@dca-vs-debt/core";
 
-export async function fetchCsvSeries(url: string): Promise<SeriesPoint[]> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch CSV: ${url} (${res.status})`);
-  const text = await res.text();
+const parsePrice = (raw: string | number | undefined): number | null => {
+  if (raw === undefined) return null;
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
 
-  const parsePrice = (raw: string | number | undefined): number | null => {
-    if (raw === undefined) return null;
-    if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
-    const trimmed = raw.trim();
-    if (!trimmed) return null;
+  // Common USD-style: strip currency symbols and thousands separators.
+  const cleaned = trimmed.replace(/[$€£,\s]/g, "");
+  const num = Number(cleaned);
+  if (Number.isFinite(num)) return num;
 
-    // Common USD-style: strip currency symbols and thousands separators.
-    const cleaned = trimmed.replace(/[$€£,\s]/g, "");
-    const num = Number(cleaned);
-    if (Number.isFinite(num)) return num;
+  // Fallback for EU-style decimals (e.g., 6.849,09).
+  const euroClean = cleaned.replace(/\./g, "").replace(/,/g, ".");
+  const numEuro = Number(euroClean);
+  return Number.isFinite(numEuro) ? numEuro : null;
+};
 
-    // Fallback for EU-style decimals (e.g., 6.849,09).
-    const euroClean = cleaned.replace(/\./g, "").replace(/,/g, ".");
-    const numEuro = Number(euroClean);
-    return Number.isFinite(numEuro) ? numEuro : null;
-  };
-
+export function parseCsvText(text: string, source: string): SeriesPoint[] {
   const parsed = Papa.parse<Record<string, string>>(text, {
     header: true,
     skipEmptyLines: true,
@@ -53,8 +49,15 @@ export async function fetchCsvSeries(url: string): Promise<SeriesPoint[]> {
     .filter((x): x is SeriesPoint => Boolean(x))
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  console.log("Fetched CSV series:", { url, length: series.length });
+  console.log("Parsed CSV series:", { source, length: series.length });
 
   if (series.length < 10) throw new Error("CSV parsed series too short.");
   return series;
+}
+
+export async function fetchCsvSeries(url: string): Promise<SeriesPoint[]> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch CSV: ${url} (${res.status})`);
+  const text = await res.text();
+  return parseCsvText(text, url);
 }
