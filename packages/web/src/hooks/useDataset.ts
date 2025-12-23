@@ -14,17 +14,17 @@ export function useDatasets(): Dataset[] {
       {
         id: "asset_2026_2040",
         label: "BTC bullish forecast (2026-01-01 → 2040-12-20)",
-        url: "/datasets/btc_daily_ohlc_2026_2040_bull_bear_fibonacci.csv",
+        url: "/datasets/bitcoin_prediction_2026_2040.csv",
       },
       {
         id: "gold_2015_2025",
-        label: "Gold daily (2015-12-23 → 2025-12-23)",
-        url: "/datasets/gold-chart_20251223T084157.csv",
+        label: "Gold daily (2000-08-30 → 2025-12-22)",
+        url: "/datasets/gold_2000_08_30_2025_12_22.csv",
       },
       {
         id: "sp500_2010_2025",
-        label: "S&P 500 daily (2010-01-01 → 2025-12-23)",
-        url: "/datasets/S&P 500 Historical Data 01_01_2010_23_12_2025.csv",
+        label: "S&P 500 daily (1927-12-30 → 2025-12-23)",
+        url: "/datasets/sp500_1927_12_30_2025_12_19.csv",
       },
     ],
     [],

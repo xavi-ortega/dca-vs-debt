@@ -5,7 +5,7 @@ import type {
   DcaResult,
   DcaState,
 } from "../types/dca.js";
-import { isRebalanceDay } from "../utils/frequency.js";
+import { buildRebalanceSchedule } from "../utils/frequency.js";
 
 type DcaEngineParams = {
   series: SeriesPoint[];
@@ -52,14 +52,14 @@ export class DcaEngine {
   }
 
   run(): DcaResult {
-    const buyDays = this.series.filter((d) =>
-      isRebalanceDay(this.freq, d.date),
-    );
-    if (buyDays.length === 0) return this.toResult(this.series.at(-1)!.price);
+    const schedule = buildRebalanceSchedule(this.series, this.freq);
+    if (schedule.length === 0)
+      return this.toResult(this.series.at(-1)!.price);
 
-    const perBuy = this.budgetUSD / buyDays.length;
+    const perBuy = this.budgetUSD / schedule.length;
 
-    for (const day of buyDays) {
+    for (const idx of schedule) {
+      const day = this.series[idx];
       this.applyBuy(perBuy, day.price);
     }
 

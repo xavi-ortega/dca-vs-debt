@@ -5,7 +5,7 @@ import type {
   DebtResult,
   DebtState,
 } from "../types/debt.js";
-import { isRebalanceDay } from "../utils/frequency.js";
+import { buildRebalanceSchedule } from "../utils/frequency.js";
 
 type DebtEngineOptions = {
   series: SeriesPoint[];
@@ -59,13 +59,16 @@ export class DebtEngine {
   }
 
   run(): DebtResult {
+    const schedule = buildRebalanceSchedule(this.series, this.freq);
+    let ptr = 0;
     for (const point of this.series) {
       this.accrueInterest();
       this.trackMaxDebt();
 
-      if (isRebalanceDay(this.freq, point.date)) {
+      while (ptr < schedule.length && this.series[schedule[ptr]].date === point.date) {
         this.rebalance(point);
         this.trackMaxDebt();
+        ptr++;
       }
     }
 

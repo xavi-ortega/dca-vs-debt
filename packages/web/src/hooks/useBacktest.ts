@@ -6,10 +6,10 @@ import {
   buildDebtReportRows,
   buildHeadToHeadRows,
   buildDcaCrossRows,
+  buildRebalanceSchedule,
   type CoreConfig,
   type SeriesPoint,
   type Frequency,
-  isRebalanceDay,
 } from "@dca-vs-debt/core";
 import type { DebtRow, HeadRow, CrossRow } from "../types/index.js";
 
@@ -206,15 +206,18 @@ function simulateDebtTimeline(
   const points: DebtTimelinePoint[] = [];
   const amortizations: StrategyEvent[] = [];
   const refinances: StrategyEvent[] = [];
+  const schedule = buildRebalanceSchedule(series, freq);
+  let ptr = 0;
 
-  for (const { date, price } of series) {
+  for (let i = 0; i < series.length; i++) {
+    const { date, price } = series[i];
     if (debt > 0) {
       const interest = debt * dailyRate;
       if (payInterestDaily) interestUSD += interest;
       else debt += interest;
     }
 
-    if (isRebalanceDay(freq, date)) {
+    while (ptr < schedule.length && schedule[ptr] === i) {
       const collateralValue = btc * price;
       const maxDebt = maxDebtPct * collateralValue;
 
@@ -240,6 +243,7 @@ function simulateDebtTimeline(
           refinances.push({ date, freq });
         }
       }
+      ptr++;
     }
 
     const collateralUSD = btc * price;
@@ -267,29 +271,27 @@ function simulateDcaTimeline(
   let btc = cfg.initialBTC;
   if (cfg.initialUSD > 0) btc += cfg.initialUSD / series[0].price;
 
-  const buyDays = series.filter((d) => isRebalanceDay(freq, d.date));
-  const perBuy = buyDays.length > 0 ? externalBudgetUSD / buyDays.length : 0;
+  const schedule = buildRebalanceSchedule(series, freq);
+  const perBuy = schedule.length > 0 ? externalBudgetUSD / schedule.length : 0;
 
   let feesUSD = 0;
   const points: DcaTimelinePoint[] = [];
 
-  for (const d of series) {
-    if (isRebalanceDay(freq, d.date) && perBuy > 0) {
+  let ptr = 0;
+  for (let i = 0; i < series.length; i++) {
+    const d = series[i];
+    while (perBuy > 0 && ptr < schedule.length && schedule[ptr] === i) {
       let netBuyUSD = perBuy;
-
       if (includeFees) {
         const fee = cfg.transactionFeeUSD * dcaTxCount;
         feesUSD += fee;
         netBuyUSD = Math.max(perBuy - fee, 0);
       }
-
       btc += netBuyUSD / d.price;
+      ptr++;
     }
 
-    points.push({
-      date: d.date,
-      btc,
-    });
+    points.push({ date: d.date, btc });
   }
 
   return points;
