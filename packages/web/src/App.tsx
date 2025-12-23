@@ -18,6 +18,8 @@ export default function App() {
     crossRows,
     combinedBtcChart,
     ltvEvents,
+    amortizationEvents,
+    refinanceEvents,
     priceSeries,
     status: backtestStatus,
     runBacktest,
@@ -164,6 +166,8 @@ export default function App() {
             <ChartsPanel
               combinedBtcChart={combinedBtcChart}
               ltvEvents={ltvEvents}
+              amortizationEvents={amortizationEvents}
+              refinanceEvents={refinanceEvents}
               priceSeries={priceSeries}
               headRows={headRows}
             />

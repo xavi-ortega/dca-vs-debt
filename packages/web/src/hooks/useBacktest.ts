@@ -15,6 +15,7 @@ import type { DebtRow, HeadRow, CrossRow } from "../types/index.js";
 
 type ChartRow = Record<string, number | string>;
 export type LtvEvent = { date: string; freq: Frequency; ltv: number };
+export type StrategyEvent = { date: string; freq: Frequency };
 export type PricePoint = { date: string; price: number };
 
 export function useBacktest() {
@@ -25,6 +26,12 @@ export function useBacktest() {
     null,
   );
   const [ltvEvents, setLtvEvents] = useState<LtvEvent[] | null>(null);
+  const [amortizationEvents, setAmortizationEvents] = useState<
+    StrategyEvent[] | null
+  >(null);
+  const [refinanceEvents, setRefinanceEvents] = useState<StrategyEvent[] | null>(
+    null,
+  );
   const [priceSeries, setPriceSeries] = useState<PricePoint[] | null>(null);
   const [status, setStatus] = useState<string>("");
 
@@ -68,7 +75,9 @@ export function useBacktest() {
       setHeadRows(head);
       setCrossRows(cross);
       setCombinedBtcChart(combinedRows);
-      setLtvEvents(events);
+      setLtvEvents(events.ltv);
+      setAmortizationEvents(events.amortization);
+      setRefinanceEvents(events.refinance);
 
       setStatus(
         `Backtest ran on ${series.length.toLocaleString(
@@ -92,9 +101,11 @@ export function useBacktest() {
     crossRows,
     combinedBtcChart,
     ltvEvents,
-    priceSeries,
-    status,
-    runBacktest,
+  amortizationEvents,
+  refinanceEvents,
+  priceSeries,
+  status,
+  runBacktest,
   };
 }
 
@@ -108,7 +119,9 @@ function buildTimelineCharts(
   opts: { includeFees: boolean; dcaTxCount: number },
 ) {
   const combined = new Map<string, ChartRow>();
-  const events: LtvEvent[] = [];
+  const ltvEvents: LtvEvent[] = [];
+  const amortizationEvents: StrategyEvent[] = [];
+  const refinanceEvents: StrategyEvent[] = [];
 
   // Budget per frequency comes from debt strategy external spend.
   const budgetByFreq = new Map<Frequency, number>();
@@ -116,7 +129,10 @@ function buildTimelineCharts(
     budgetByFreq.set(dr.freq as Frequency, dr.externalTotalUSD);
 
   for (const freq of FREQUENCIES) {
-    const debtTimeline = simulateDebtTimeline(series, cfg, freq);
+    const { points: debtTimeline, amortizations, refinances } =
+      simulateDebtTimeline(series, cfg, freq);
+    amortizationEvents.push(...amortizations);
+    refinanceEvents.push(...refinances);
     const dcaTimeline = simulateDcaTimeline(
       series,
       cfg,
@@ -130,7 +146,7 @@ function buildTimelineCharts(
       row[`debt-${freq}-btc`] = p.btc;
       row[`debt-${freq}-ltv`] = p.ltv;
       combined.set(p.date, row);
-      if (p.ltv >= 0.5) events.push({ date: p.date, freq, ltv: p.ltv });
+      if (p.ltv >= 0.5) ltvEvents.push({ date: p.date, freq, ltv: p.ltv });
     }
 
     for (const p of dcaTimeline) {
@@ -144,14 +160,25 @@ function buildTimelineCharts(
     String(a.date).localeCompare(String(b.date)),
   );
 
-  return { combinedRows, events };
+  return {
+    combinedRows,
+    events: {
+      ltv: ltvEvents,
+      amortization: amortizationEvents,
+      refinance: refinanceEvents,
+    },
+  };
 }
 
 function simulateDebtTimeline(
   series: SeriesPoint[],
   cfg: CoreConfig,
   freq: Frequency,
-): DebtTimelinePoint[] {
+): {
+  points: DebtTimelinePoint[];
+  amortizations: StrategyEvent[];
+  refinances: StrategyEvent[];
+} {
   const {
     initialBTC,
     initialUSD,
@@ -174,6 +201,8 @@ function simulateDebtTimeline(
 
   const dailyRate = apr / 365;
   const points: DebtTimelinePoint[] = [];
+  const amortizations: StrategyEvent[] = [];
+  const refinances: StrategyEvent[] = [];
 
   for (const { date, price } of series) {
     if (debt > 0) {
@@ -192,6 +221,7 @@ function simulateDebtTimeline(
         principalUSD += repay;
 
         feesUSD += amortizationFeeUSD;
+        amortizations.push({ date, freq });
       }
 
       const lowerBound = maxDebt * (1 - band);
@@ -204,6 +234,7 @@ function simulateDebtTimeline(
           btc += borrow / price;
 
           feesUSD += refinancingFeeUSD;
+          refinances.push({ date, freq });
         }
       }
     }
@@ -218,7 +249,7 @@ function simulateDebtTimeline(
     });
   }
 
-  return points;
+  return { points, amortizations, refinances };
 }
 
 function simulateDcaTimeline(

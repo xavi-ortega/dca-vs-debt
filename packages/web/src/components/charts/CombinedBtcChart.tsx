@@ -23,7 +23,7 @@ const emptyState = (
 );
 
 export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
-  const [freq, setFreq] = useState<string>("all");
+  const [freq, setFreq] = useState<string>("daily");
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {

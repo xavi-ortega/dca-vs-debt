@@ -1,6 +1,10 @@
 import React from "react";
 import type { HeadRow } from "@/types";
-import type { LtvEvent, PricePoint } from "@/hooks/useBacktest.js";
+import type {
+  LtvEvent,
+  PricePoint,
+  StrategyEvent,
+} from "@/hooks/useBacktest.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CombinedBtcChart } from "./CombinedBtcChart.js";
 import { HeadHeatmap } from "./HeadHeatmap.js";
@@ -12,6 +16,8 @@ import { fmtAsset, fmtUSD } from "@/lib/utils.js";
 type Props = {
   combinedBtcChart: Record<string, number | string>[] | null;
   ltvEvents: LtvEvent[] | null;
+  amortizationEvents: StrategyEvent[] | null;
+  refinanceEvents: StrategyEvent[] | null;
   priceSeries: PricePoint[] | null;
   headRows: HeadRow[] | null;
 };
@@ -19,6 +25,8 @@ type Props = {
 export function ChartsPanel({
   combinedBtcChart,
   ltvEvents,
+  amortizationEvents,
+  refinanceEvents,
   priceSeries,
   headRows,
 }: Props) {
@@ -34,8 +42,13 @@ export function ChartsPanel({
 
   return (
     <div className="space-y-6">
-      <PriceChart data={priceSeries} ltvEvents={ltvEvents} />
-      <CombinedBtcChart data={combinedBtcChart} />
+      <PriceChart
+        data={priceSeries}
+        ltvEvents={ltvEvents}
+        amortizationEvents={amortizationEvents}
+        refinanceEvents={refinanceEvents}
+      />
+     <CombinedBtcChart data={combinedBtcChart} />
       <Card>
         <CardHeader>
           <CardTitle>Performance overview</CardTitle>
