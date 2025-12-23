@@ -10,7 +10,6 @@ import {
   type SeriesPoint,
   type Frequency,
   isRebalanceDay,
-  btcFeeUSD,
 } from "@bitcoin-strategy/core";
 import type { DebtRow, HeadRow, CrossRow } from "../types/index.js";
 
@@ -159,10 +158,8 @@ function simulateDebtTimeline(
     apr,
     maxDebtPct,
     band,
-    satPerVb,
-    vbytesPerTx,
-    txBorrow,
-    txRepay,
+    amortizationFeeUSD,
+    refinancingFeeUSD,
     payInterestDaily,
     borrowToMax,
   } = cfg;
@@ -194,12 +191,7 @@ function simulateDebtTimeline(
         debt -= repay;
         principalUSD += repay;
 
-        feesUSD += btcFeeUSD({
-          satPerVb,
-          vbytes: vbytesPerTx,
-          txCount: txRepay,
-          btcPriceUSD: price,
-        });
+        feesUSD += amortizationFeeUSD;
       }
 
       const lowerBound = maxDebt * (1 - band);
@@ -211,12 +203,7 @@ function simulateDebtTimeline(
           debt += borrow;
           btc += borrow / price;
 
-          feesUSD += btcFeeUSD({
-            satPerVb,
-            vbytes: vbytesPerTx,
-            txCount: txBorrow,
-            btcPriceUSD: price,
-          });
+          feesUSD += refinancingFeeUSD;
         }
       }
     }
@@ -257,12 +244,7 @@ function simulateDcaTimeline(
       let netBuyUSD = perBuy;
 
       if (includeFees) {
-        const fee = btcFeeUSD({
-          satPerVb: cfg.satPerVb,
-          vbytes: cfg.vbytesPerTx,
-          txCount: dcaTxCount,
-          btcPriceUSD: d.price,
-        });
+        const fee = cfg.transactionFeeUSD * dcaTxCount;
         feesUSD += fee;
         netBuyUSD = Math.max(perBuy - fee, 0);
       }

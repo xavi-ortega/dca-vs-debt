@@ -5,20 +5,12 @@ import type {
   DebtResult,
   DebtState,
 } from "../types/debt.js";
-import { btcFeeUSD } from "../utils/fees.js";
 import { isRebalanceDay } from "../utils/frequency.js";
 
 type DebtEngineOptions = {
   series: SeriesPoint[];
   config: CoreConfig;
   freq: Frequency;
-};
-
-type FeeContext = {
-  satPerVb: number;
-  vbytesPerTx: number;
-  btcPriceUSD: number;
-  txCount: number;
 };
 
 const INITIAL_LEDGER: DebtLedger = {
@@ -36,7 +28,7 @@ export class DebtEngine {
   private readonly policy: DebtPolicy;
   private readonly feeInputs: Pick<
     CoreConfig,
-    "satPerVb" | "vbytesPerTx" | "txBorrow" | "txRepay"
+    "amortizationFeeUSD" | "refinancingFeeUSD"
   >;
   private readonly dailyRate: number;
 
@@ -53,10 +45,8 @@ export class DebtEngine {
       borrowToMax: config.borrowToMax,
     };
     this.feeInputs = {
-      satPerVb: config.satPerVb,
-      vbytesPerTx: config.vbytesPerTx,
-      txBorrow: config.txBorrow,
-      txRepay: config.txRepay,
+      amortizationFeeUSD: config.amortizationFeeUSD,
+      refinancingFeeUSD: config.refinancingFeeUSD,
     };
     this.dailyRate = config.apr / 365;
 
@@ -96,7 +86,7 @@ export class DebtEngine {
 
     if (this.state.debtUSD > maxDebt) {
       const repayUSD = this.state.debtUSD - maxDebt;
-      this.applyRepay(repayUSD, point.price);
+      this.applyRepay(repayUSD);
     }
 
     const lowerBound = maxDebt * (1 - this.policy.band);
@@ -111,33 +101,14 @@ export class DebtEngine {
     this.state.debtUSD += amountUSD;
     this.state.btc += amountUSD / btcPriceUSD;
     this.ledger.borrows += 1;
-    this.ledger.feesUSD += this.txFeeUSD({
-      btcPriceUSD,
-      txCount: this.feeInputs.txBorrow,
-      satPerVb: this.feeInputs.satPerVb,
-      vbytesPerTx: this.feeInputs.vbytesPerTx,
-    });
+    this.ledger.feesUSD += this.feeInputs.refinancingFeeUSD;
   }
 
-  private applyRepay(amountUSD: number, btcPriceUSD: number) {
+  private applyRepay(amountUSD: number) {
     this.state.debtUSD -= amountUSD;
     this.ledger.principalUSD += amountUSD;
     this.ledger.repays += 1;
-    this.ledger.feesUSD += this.txFeeUSD({
-      btcPriceUSD,
-      txCount: this.feeInputs.txRepay,
-      satPerVb: this.feeInputs.satPerVb,
-      vbytesPerTx: this.feeInputs.vbytesPerTx,
-    });
-  }
-
-  private txFeeUSD(ctx: FeeContext) {
-    return btcFeeUSD({
-      satPerVb: ctx.satPerVb,
-      vbytes: ctx.vbytesPerTx,
-      txCount: ctx.txCount,
-      btcPriceUSD: ctx.btcPriceUSD,
-    });
+    this.ledger.feesUSD += this.feeInputs.amortizationFeeUSD;
   }
 
   private trackMaxDebt() {

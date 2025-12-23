@@ -7,6 +7,10 @@ export function cn(...inputs: ClassValue[]) {
 
 // Formatting utilities
 const units = [
+  { value: 1e24, suffix: "Sp" },
+  { value: 1e21, suffix: "Sx" },
+  { value: 1e18, suffix: "Qn" },
+  { value: 1e15, suffix: "Qd" },
   { value: 1e12, suffix: "T" },
   { value: 1e9, suffix: "B" },
   { value: 1e6, suffix: "M" },
@@ -58,10 +62,10 @@ export const fmtNum = (n: number, d = 2) =>
       })
     : "NaN";
 
-export const fmtBTC = (n: number) =>
+export const fmtAsset = (n: number) =>
   formatWithUnits(n, {
     prefix: "",
-    suffix: " ₿",
+    suffix: "",
     smallMinFraction: 2,
     smallMaxFraction: 6,
   });

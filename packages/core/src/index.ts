@@ -16,7 +16,6 @@ export {
   FREQUENCIES,
   isRebalanceDay,
   filterRange,
-  btcFeeUSD,
 } from "./utils/index.js";
 
 // Re-export all simulations

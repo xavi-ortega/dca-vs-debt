@@ -15,10 +15,9 @@ export function parseArgs(argv: string[]): CliArgs {
     payInterestDaily: true,
     borrowToMax: true,
 
-    satPerVb: 20,
-    vbytesPerTx: 180,
-    txBorrow: 1,
-    txRepay: 1,
+    transactionFeeUSD: 1,
+    amortizationFeeUSD: 1,
+    refinancingFeeUSD: 1,
 
     includeDcaFees: true,
     dcaTxCount: 1,

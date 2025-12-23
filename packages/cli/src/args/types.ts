@@ -12,10 +12,9 @@ export type CliArgs = {
   payInterestDaily: boolean;
   borrowToMax: boolean;
 
-  satPerVb: number;
-  vbytesPerTx: number;
-  txBorrow: number;
-  txRepay: number;
+  transactionFeeUSD: number;
+  amortizationFeeUSD: number;
+  refinancingFeeUSD: number;
 
   includeDcaFees: boolean;
   dcaTxCount: number;

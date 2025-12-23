@@ -24,7 +24,6 @@ export default function App() {
   } = useBacktest();
 
   const [darkMode, setDarkMode] = useState(false);
-  const [advancedMode, setAdvancedMode] = useState(false);
 
   // Inputs
   const [start, setStart] = useState("2023-01-01");
@@ -37,10 +36,9 @@ export default function App() {
   const [maxDebtPct, setMaxDebtPct] = useState(0.15);
   const [band, setBand] = useState(0.02);
 
-  const [satPerVb, setSatPerVb] = useState(20);
-  const [vbytesPerTx, setVbytesPerTx] = useState(180);
-  const [txBorrow, setTxBorrow] = useState(1);
-  const [txRepay, setTxRepay] = useState(1);
+  const [transactionFeeUSD, setTransactionFeeUSD] = useState(1);
+  const [amortizationFeeUSD, setAmortizationFeeUSD] = useState(1);
+  const [refinancingFeeUSD, setRefinancingFeeUSD] = useState(1);
 
   const [activeTab, setActiveTab] = useState<
     "charts" | "debt" | "head" | "cross"
@@ -58,10 +56,9 @@ export default function App() {
       payInterestDaily: true,
       borrowToMax: true,
 
-      satPerVb: Number(satPerVb),
-      vbytesPerTx: Number(vbytesPerTx),
-      txBorrow: Number(txBorrow),
-      txRepay: Number(txRepay),
+      transactionFeeUSD: Number(transactionFeeUSD),
+      amortizationFeeUSD: Number(amortizationFeeUSD),
+      refinancingFeeUSD: Number(refinancingFeeUSD),
     }),
     [
       initialBTC,
@@ -69,10 +66,9 @@ export default function App() {
       apr,
       maxDebtPct,
       band,
-      satPerVb,
-      vbytesPerTx,
-      txBorrow,
-      txRepay,
+      transactionFeeUSD,
+      amortizationFeeUSD,
+      refinancingFeeUSD,
     ],
   );
 
@@ -136,11 +132,9 @@ export default function App() {
           apr={apr}
           maxDebtPct={maxDebtPct}
           band={band}
-          satPerVb={satPerVb}
-          vbytesPerTx={vbytesPerTx}
-          txBorrow={txBorrow}
-          txRepay={txRepay}
-          advancedMode={advancedMode}
+          transactionFeeUSD={transactionFeeUSD}
+          amortizationFeeUSD={amortizationFeeUSD}
+          refinancingFeeUSD={refinancingFeeUSD}
           onStartChange={setStart}
           onEndChange={setEnd}
           onInitialBTCChange={setInitialBTC}
@@ -148,11 +142,9 @@ export default function App() {
           onAprChange={setApr}
           onMaxDebtPctChange={setMaxDebtPct}
           onBandChange={setBand}
-          onSatPerVbChange={setSatPerVb}
-          onVbytesPerTxChange={setVbytesPerTx}
-          onTxBorrowChange={setTxBorrow}
-          onTxRepayChange={setTxRepay}
-          onAdvancedModeChange={setAdvancedMode}
+          onTransactionFeeUSDChange={setTransactionFeeUSD}
+          onAmortizationFeeUSDChange={setAmortizationFeeUSD}
+          onRefinancingFeeUSDChange={setRefinancingFeeUSD}
         />
 
         <ResultsTabs

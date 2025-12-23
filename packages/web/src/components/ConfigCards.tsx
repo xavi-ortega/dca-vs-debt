@@ -10,14 +10,12 @@ import { Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils.js";
 
 interface ConfigCardsProps {
   start: string;
@@ -27,11 +25,9 @@ interface ConfigCardsProps {
   apr: number;
   maxDebtPct: number;
   band: number;
-  satPerVb: number;
-  vbytesPerTx: number;
-  txBorrow: number;
-  txRepay: number;
-  advancedMode: boolean;
+  transactionFeeUSD: number;
+  amortizationFeeUSD: number;
+  refinancingFeeUSD: number;
   onStartChange: (value: string) => void;
   onEndChange: (value: string) => void;
   onInitialBTCChange: (value: number) => void;
@@ -39,11 +35,9 @@ interface ConfigCardsProps {
   onAprChange: (value: number) => void;
   onMaxDebtPctChange: (value: number) => void;
   onBandChange: (value: number) => void;
-  onSatPerVbChange: (value: number) => void;
-  onVbytesPerTxChange: (value: number) => void;
-  onTxBorrowChange: (value: number) => void;
-  onTxRepayChange: (value: number) => void;
-  onAdvancedModeChange: (value: boolean) => void;
+  onTransactionFeeUSDChange: (value: number) => void;
+  onAmortizationFeeUSDChange: (value: number) => void;
+  onRefinancingFeeUSDChange: (value: number) => void;
 }
 
 const InfoLabel = ({ label, tip }: { label: string; tip: string }) => (
@@ -74,11 +68,9 @@ export function ConfigCards({
   apr,
   maxDebtPct,
   band,
-  satPerVb,
-  vbytesPerTx,
-  txBorrow,
-  txRepay,
-  advancedMode,
+  transactionFeeUSD,
+  amortizationFeeUSD,
+  refinancingFeeUSD,
   onStartChange,
   onEndChange,
   onInitialBTCChange,
@@ -86,25 +78,13 @@ export function ConfigCards({
   onAprChange,
   onMaxDebtPctChange,
   onBandChange,
-  onSatPerVbChange,
-  onVbytesPerTxChange,
-  onTxBorrowChange,
-  onTxRepayChange,
-  onAdvancedModeChange,
+  onTransactionFeeUSDChange,
+  onAmortizationFeeUSDChange,
+  onRefinancingFeeUSDChange,
 }: ConfigCardsProps) {
   return (
     <div className="mt-6 space-y-3">
-      <div className="flex items-center justify-end gap-2 text-xs">
-        <span className={!advancedMode ? "font-semibold" : ""}>Lite</span>
-        <Switch checked={advancedMode} onCheckedChange={onAdvancedModeChange} />
-        <span className={advancedMode ? "font-semibold" : ""}>Pro</span>
-      </div>
-      <div
-        className={cn(
-          "grid grid-cols-1 gap-4",
-          advancedMode ? "lg:grid-cols-3" : "lg:grid-cols-2",
-        )}
-      >
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Range & Capital</CardTitle>
@@ -116,7 +96,7 @@ export function ConfigCards({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <InfoLabel
-                  label="Start"
+                  label="Start date"
                   tip="First date to include in the backtest (YYYY-MM-DD)."
                 />
                 <Input
@@ -127,7 +107,7 @@ export function ConfigCards({
               </div>
               <div className="space-y-1.5">
                 <InfoLabel
-                  label="End"
+                  label="End date"
                   tip="Last date to include in the backtest (YYYY-MM-DD)."
                 />
                 <Input
@@ -143,8 +123,8 @@ export function ConfigCards({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <InfoLabel
-                  label="initialUSD"
-                  tip="Cash allocated at start; auto-converted to BTC on day one."
+                  label="Initial cash (USD)"
+                  tip="Cash allocated at start; auto-converted to collateral on day one."
                 />
                 <Input
                   type="number"
@@ -154,8 +134,8 @@ export function ConfigCards({
               </div>
               <div className="space-y-1.5">
                 <InfoLabel
-                  label="initialBTC"
-                  tip="BTC allocated at start (kept as BTC)."
+                  label="Initial collateral (units)"
+                  tip="Units of pledged collateral allocated at start (kept as collateral)."
                 />
                 <Input
                   type="number"
@@ -171,31 +151,27 @@ export function ConfigCards({
           <CardHeader>
             <CardTitle>Debt Policy</CardTitle>
             <CardDescription>
-              LTV constraint via maxDebtPct + hysteresis band.
+              LTV constraint via max debt % plus a hysteresis band.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div
-              className={`grid gap-3 ${advancedMode ? "grid-cols-3" : "grid-cols-1"}`}
-            >
-              {advancedMode && (
-                <div className="space-y-1.5">
-                  <InfoLabel
-                    label="APR"
-                    tip="Annualized borrow rate applied to outstanding debt."
-                  />
-                  <Input
-                    type="number"
-                    step="0.001"
-                    value={apr}
-                    onChange={(e) => onAprChange(Number(e.target.value))}
-                  />
-                </div>
-              )}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1.5">
                 <InfoLabel
-                  label="maxDebtPct"
-                  tip="Max debt as % of collateral value (e.g., 0.15 = 15%)."
+                  label="Debt interest rate (APR)"
+                  tip="Annualized borrow rate applied to outstanding debt."
+                />
+                <Input
+                  type="number"
+                  step="0.001"
+                  value={apr}
+                  onChange={(e) => onAprChange(Number(e.target.value))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="Max debt percentage"
+                  tip="Maximum debt as a fraction of collateral value (e.g., 0.15 = 15%)."
                 />
                 <Input
                   type="number"
@@ -204,20 +180,18 @@ export function ConfigCards({
                   onChange={(e) => onMaxDebtPctChange(Number(e.target.value))}
                 />
               </div>
-              {advancedMode && (
-                <div className="space-y-1.5">
-                  <InfoLabel
-                    label="band"
-                    tip="Rebalance band; borrow/repay when LTV drifts beyond this band."
-                  />
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={band}
-                    onChange={(e) => onBandChange(Number(e.target.value))}
-                  />
-                </div>
-              )}
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="Rebalance band"
+                  tip="Borrow or repay when LTV drifts beyond this tolerance band."
+                />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={band}
+                  onChange={(e) => onBandChange(Number(e.target.value))}
+                />
+              </div>
             </div>
 
             <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
@@ -231,67 +205,64 @@ export function ConfigCards({
           </CardContent>
         </Card>
 
-        {advancedMode && (
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle>Fees</CardTitle>
-              <CardDescription>Bitcoin L1 fee model.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <InfoLabel
-                    label="sat/vB"
-                    tip="Fee rate in satoshis per virtual byte."
-                  />
-                  <Input
-                    type="number"
-                    value={satPerVb}
-                    onChange={(e) => onSatPerVbChange(Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <InfoLabel
-                    label="vbytes/tx"
-                    tip="Estimated transaction size per borrow/repay or DCA."
-                  />
-                  <Input
-                    type="number"
-                    value={vbytesPerTx}
-                    onChange={(e) =>
-                      onVbytesPerTxChange(Number(e.target.value))
-                    }
-                  />
-                </div>
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Fees</CardTitle>
+            <CardDescription>
+              Flat USD costs for transactions, amortization, and refinancing.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="Transaction fee (USD)"
+                  tip="Per-transaction cost applied when DCA fees are included."
+                />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={transactionFeeUSD}
+                  onChange={(e) =>
+                    onTransactionFeeUSDChange(Number(e.target.value))
+                  }
+                />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <InfoLabel
-                    label="txBorrow"
-                    tip="Number of on-chain tx per borrow event."
-                  />
-                  <Input
-                    type="number"
-                    value={txBorrow}
-                    onChange={(e) => onTxBorrowChange(Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <InfoLabel
-                    label="txRepay"
-                    tip="Number of on-chain tx per repay event."
-                  />
-                  <Input
-                    type="number"
-                    value={txRepay}
-                    onChange={(e) => onTxRepayChange(Number(e.target.value))}
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="Amortization fee (USD)"
+                  tip="Flat fee applied each time the strategy repays debt."
+                />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={amortizationFeeUSD}
+                  onChange={(e) =>
+                    onAmortizationFeeUSDChange(Number(e.target.value))
+                  }
+                />
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className="space-y-1.5">
+                <InfoLabel
+                  label="Refinancing fee (USD)"
+                  tip="Flat fee applied each time the strategy borrows or refinances."
+                />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={refinancingFeeUSD}
+                  onChange={(e) =>
+                    onRefinancingFeeUSDChange(Number(e.target.value))
+                  }
+                />
+              </div>
+            </div>
+            <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+              These inputs are asset-agnostic—set them to reflect exchange,
+              custody, or network costs for any collateral type.
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

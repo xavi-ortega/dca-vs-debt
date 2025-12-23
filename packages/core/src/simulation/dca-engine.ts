@@ -6,7 +6,6 @@ import type {
   DcaState,
 } from "../types/dca.js";
 import { isRebalanceDay } from "../utils/frequency.js";
-import { btcFeeUSD } from "../utils/fees.js";
 
 type DcaEngineParams = {
   series: SeriesPoint[];
@@ -70,12 +69,7 @@ export class DcaEngine {
   private applyBuy(perBuyUSD: number, btcPriceUSD: number) {
     let netBuyUSD = perBuyUSD;
     if (this.opts.includeFees) {
-      const fee = btcFeeUSD({
-        satPerVb: this.cfg.satPerVb,
-        vbytes: this.cfg.vbytesPerTx,
-        txCount: this.opts.dcaTxCount,
-        btcPriceUSD,
-      });
+      const fee = this.cfg.transactionFeeUSD * this.opts.dcaTxCount;
       this.ledger.feesUSD += fee;
       netBuyUSD = Math.max(perBuyUSD - fee, 0);
     }

@@ -16,8 +16,7 @@ export type CoreConfig = {
   payInterestDaily: boolean;
   borrowToMax: boolean;
 
-  satPerVb: number;
-  vbytesPerTx: number;
-  txBorrow: number;
-  txRepay: number;
+  transactionFeeUSD: number;
+  amortizationFeeUSD: number;
+  refinancingFeeUSD: number;
 };

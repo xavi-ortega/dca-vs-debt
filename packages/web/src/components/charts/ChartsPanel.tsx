@@ -7,7 +7,7 @@ import { HeadHeatmap } from "./HeadHeatmap.js";
 import { PriceChart } from "./PriceChart.js";
 import { PieComparison } from "./PieComparison.js";
 import { freqLabel, freqColor, sortByFrequency } from "@/lib/frequency.js";
-import { fmtBTC, fmtUSD } from "@/lib/utils.js";
+import { fmtAsset, fmtUSD } from "@/lib/utils.js";
 
 type Props = {
   combinedBtcChart: Record<string, number | string>[] | null;
@@ -71,7 +71,7 @@ export function ChartsPanel({
                       <div>
                         <div className="font-medium">{freqLabel[row.freq]}</div>
                         <div className="text-muted-foreground text-xs">
-                          Debt {fmtBTC(row.debtBTC)} vs DCA {fmtBTC(row.dcaBTC)}
+                          Debt {fmtAsset(row.debtBTC)} vs DCA {fmtAsset(row.dcaBTC)}
                         </div>
                       </div>
                     </div>

@@ -57,10 +57,9 @@ async function main() {
     payInterestDaily: Boolean(args.payInterestDaily),
     borrowToMax: Boolean(args.borrowToMax),
 
-    satPerVb: Number(args.satPerVb),
-    vbytesPerTx: Number(args.vbytesPerTx),
-    txBorrow: Number(args.txBorrow),
-    txRepay: Number(args.txRepay),
+    transactionFeeUSD: Number(args.transactionFeeUSD),
+    amortizationFeeUSD: Number(args.amortizationFeeUSD),
+    refinancingFeeUSD: Number(args.refinancingFeeUSD),
   };
 
   const dcaOpts = {
@@ -96,7 +95,7 @@ async function main() {
   );
   console.log(
     kleur.gray(
-      `Fees:    sat/vB=${cfg.satPerVb}  vbytes=${cfg.vbytesPerTx}  txBorrow=${cfg.txBorrow}  txRepay=${cfg.txRepay}`,
+      `Fees:    transaction=$${fmtNum(cfg.transactionFeeUSD)}  amortization=$${fmtNum(cfg.amortizationFeeUSD)}  refinancing=$${fmtNum(cfg.refinancingFeeUSD)}`,
     ),
   );
   console.log(
