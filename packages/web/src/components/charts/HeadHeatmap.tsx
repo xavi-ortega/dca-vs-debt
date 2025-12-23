@@ -33,18 +33,23 @@ export function HeadHeatmap({
   ).filter(Boolean) as HeadRow[];
 
   const scaleColor = (delta: number) => {
-    // Smooth diverging palette using tanh to compress extremes.
-    const scaled = Math.tanh(delta / 80000);
-    if (scaled >= 0) {
-      // green side
-      const light = 70 + Math.round(25 * scaled);
-      const sat = 55 + Math.round(25 * scaled);
-      return `hsl(150 ${sat}% ${light}%)`;
-    } else {
-      const light = 70 + Math.round(25 * -scaled);
-      const sat = 55 + Math.round(25 * -scaled);
-      return `hsl(10 ${sat}% ${light}%)`;
-    }
+    // Diverging palette tuned for contrast in light/dark.
+    const scaled = Math.tanh(delta / 180000); // compress extremes
+    const pos = { h: 156, s: 62, l: 40 }; // teal-ish green
+    const neg = { h: 12, s: 75, l: 46 }; // warm red
+    const spread = 10; // adjust lightness by magnitude
+
+    const src = scaled >= 0 ? pos : neg;
+    const l = Math.max(
+      28,
+      Math.min(70, src.l + Math.round(spread * Math.abs(scaled))),
+    );
+    const s = Math.max(
+      45,
+      Math.min(80, src.s + Math.round(12 * Math.abs(scaled))),
+    );
+
+    return `hsl(${src.h} ${s}% ${l}%)`;
   };
 
   const content = (
@@ -52,13 +57,15 @@ export function HeadHeatmap({
       {rows.map((row) => {
         const delta = row.deltaNetUSD;
         const bg = scaleColor(delta);
+        const lightMatch = Number(bg.match(/(\d+)%\)$/)?.[1] ?? 50);
+        const textColor = lightMatch >= 50 ? "#0b1221" : "#f5f7fb";
         return (
           <div
             key={row.freq}
-            className="rounded-lg p-3 text-sm shadow-sm"
+            className="rounded-lg border border-border/70 p-3 text-sm shadow-sm"
             style={{
               backgroundColor: bg,
-              color: "var(--foreground)",
+              color: textColor,
             }}
             title={`Debt: ${fmtUSD(row.debtNetUSD, 0, 0)} | DCA: ${fmtUSD(
               row.dcaValueUSD,

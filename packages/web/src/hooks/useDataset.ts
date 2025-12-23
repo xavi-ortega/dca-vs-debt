@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import type { SeriesPoint } from "@bitcoin-strategy/core";
+import type { SeriesPoint } from "@dca-vs-debt/core";
 import { fetchCsvSeries } from "@/lib/csv";
 import type { Dataset } from "../types/index.js";
 
@@ -7,13 +7,13 @@ export function useDatasets(): Dataset[] {
   return useMemo(
     () => [
       {
-        id: "btc_2010_2025",
-        label: "BTC daily (2010-07-17 → 2025-12-20)",
+        id: "asset_2010_2025",
+        label: "Asset daily (2010-07-17 → 2025-12-20)",
         url: "/datasets/bitcoin_2010-07-17_2025-12-20.csv",
       },
       {
-        id: "btc_2026_2040",
-        label: "BTC GPT-5.2 bullish forecast (2026-01-01 → 2040-12-20)",
+        id: "asset_2026_2040",
+        label: "Asset bullish forecast (2026-01-01 → 2040-12-20)",
         url: "/datasets/btc_daily_ohlc_2026_2040_bull_bear_fibonacci.csv",
       },
     ],

@@ -1,7 +1,7 @@
 import kleur from "kleur";
-import type { DebtReportRow } from "@bitcoin-strategy/core";
+import type { DebtReportRow } from "@dca-vs-debt/core";
 import type { Column } from "./types.js";
-import { fmtBTC, fmtInt } from "../format/index.js";
+import { fmtAsset, fmtInt } from "../format/index.js";
 
 export function getDebtTableColumns(): Column<DebtReportRow>[] {
   return [
@@ -10,7 +10,7 @@ export function getDebtTableColumns(): Column<DebtReportRow>[] {
       align: "left",
       cell: (r) => kleur.cyan(String(r.freq)),
     },
-    { label: "BTC", align: "right", cell: (r) => fmtBTC(r.btcFinal) },
+    { label: "Asset", align: "right", cell: (r) => fmtAsset(r.btcFinal) },
     {
       label: "Final $",
       align: "right",

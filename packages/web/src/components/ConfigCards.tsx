@@ -134,7 +134,7 @@ export function ConfigCards({
               </div>
               <div className="space-y-1.5">
                 <InfoLabel
-                  label="Initial collateral (units)"
+                  label="Initial collateral"
                   tip="Units of pledged collateral allocated at start (kept as collateral)."
                 />
                 <Input

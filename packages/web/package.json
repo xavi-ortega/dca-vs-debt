@@ -1,10 +1,10 @@
 {
-  "name": "@bitcoin-strategy/web",
+  "name": "@dca-vs-debt/web",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "@bitcoin-strategy/core": "*",
+    "@dca-vs-debt/core": "*",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-separator": "^1.1.8",

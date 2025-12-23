@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { HeadRow } from "@/types";
-import { fmtBTC, fmtUSD } from "@/lib/utils";
 import { freqColor, freqLabel, sortByFrequency } from "@/lib/frequency";
 
 type Props = { headRows: HeadRow[] | null; embedded?: boolean };
@@ -51,7 +50,7 @@ export function PieComparison({ headRows, embedded = false }: Props) {
     emptyState
   ) : (
     <div className="grid gap-4 md:grid-cols-[1fr,1.2fr]">
-      <div className="h-64">
+      <div className="h-64 rounded-lg border border-border/60 bg-secondary/40 p-3">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -60,6 +59,8 @@ export function PieComparison({ headRows, embedded = false }: Props) {
               nameKey="name"
               innerRadius={50}
               outerRadius={80}
+              stroke="var(--color-card-foreground)"
+              strokeWidth={1.5}
             >
               {slices.map((slice) => (
                 <Cell key={slice.key} fill={slice.color} />

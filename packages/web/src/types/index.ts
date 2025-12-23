@@ -2,7 +2,7 @@ import type {
   buildDebtReportRows,
   buildHeadToHeadRows,
   buildDcaCrossRows,
-} from "@bitcoin-strategy/core";
+} from "@dca-vs-debt/core";
 
 export type DebtRow = ReturnType<typeof buildDebtReportRows>[number];
 export type HeadRow = ReturnType<typeof buildHeadToHeadRows>[number];

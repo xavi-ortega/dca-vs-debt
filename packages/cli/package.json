@@ -1,10 +1,10 @@
 {
-  "name": "@bitcoin-strategy/cli",
+  "name": "@dca-vs-debt/cli",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@bitcoin-strategy/core": "*",
+    "@dca-vs-debt/core": "*",
     "@inquirer/select": "^5.0.3",
     "cli-table3": "^0.6.5",
     "kleur": "^4.1.5"

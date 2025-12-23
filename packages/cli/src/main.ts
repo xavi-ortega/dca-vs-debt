@@ -11,11 +11,11 @@ import {
   type CoreConfig,
   type SeriesPoint,
   type Frequency,
-} from "@bitcoin-strategy/core";
+} from "@dca-vs-debt/core";
 
 import { parseCSV, detectColumns, toISODate } from "./csv/index.js";
 import { parseArgs } from "./args/index.js";
-import { fmtNum, fmtInt, fmtBTC, fmtBytes } from "./format/index.js";
+import { fmtNum, fmtInt, fmtBytes } from "./format/index.js";
 import { listAssetDatasets, chooseDataset } from "./assets/index.js";
 import {
   printTable,
@@ -68,7 +68,7 @@ async function main() {
   };
 
   // Header / config
-  console.log(kleur.bold("\nBitcoin Strategy CLI"));
+  console.log(kleur.bold("\nDCA vs Debt CLI"));
   console.log(
     kleur.gray(`Dataset: ${chosen.name}  (${fmtBytes(chosen.bytes)})`),
   );
@@ -85,7 +85,7 @@ async function main() {
   );
   console.log(
     kleur.gray(
-      `Init:    initialBTC=${cfg.initialBTC}  initialUSD=$${fmtNum(cfg.initialUSD)}`,
+      `Init:    initialAsset=${cfg.initialBTC}  initialUSD=$${fmtNum(cfg.initialUSD)}`,
     ),
   );
   console.log(

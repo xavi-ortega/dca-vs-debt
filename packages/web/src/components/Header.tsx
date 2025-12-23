@@ -35,11 +35,10 @@ export function Header({
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          Bitcoin Strategy Backtest
+          DCA vs Debt Backtest
         </h1>
         <p className="text-sm text-muted-foreground">
-          Dashboard UI (no backend). Debt strategy vs DCA with optional on-chain
-          fees.
+          Dashboard UI (no backend). Debt strategy vs DCA with optional fees for any asset.
         </p>
       </div>
 

@@ -1,5 +1,5 @@
 import Papa from "papaparse";
-import type { SeriesPoint } from "@bitcoin-strategy/core";
+import type { SeriesPoint } from "@dca-vs-debt/core";
 
 export async function fetchCsvSeries(url: string): Promise<SeriesPoint[]> {
   const res = await fetch(url);

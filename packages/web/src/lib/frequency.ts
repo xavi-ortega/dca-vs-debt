@@ -1,4 +1,4 @@
-import type { Frequency } from "@bitcoin-strategy/core";
+import type { Frequency } from "@dca-vs-debt/core";
 
 export const FREQ_ORDER: Frequency[] = [
   "daily",

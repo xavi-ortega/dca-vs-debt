@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fmtBTC } from "@/lib/utils";
+import { fmtAsset } from "@/lib/utils";
 import { freqColor, freqLabel, FREQ_ORDER } from "@/lib/frequency";
 import { FreqSelect } from "./FreqSelect.js";
 
@@ -39,10 +39,10 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>BTC exposure over time</CardTitle>
+        <CardTitle>Asset exposure over time</CardTitle>
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-muted-foreground">
-            Compare BTC holdings for Debt vs DCA on the selected cadence.
+            Compare asset holdings for Debt vs DCA on the selected cadence.
           </p>
           <FreqSelect value={freq} onChange={setFreq} />
         </div>
@@ -55,10 +55,10 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
             <LineChart data={rows}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="date" minTickGap={28} />
-              <YAxis tickFormatter={(v) => fmtBTC(Number(v))} width={90} />
+              <YAxis tickFormatter={(v) => fmtAsset(Number(v))} width={90} />
               <Tooltip
                 formatter={(value: any, name?: string) => [
-                  fmtBTC(Number(value)),
+                  fmtAsset(Number(value)),
                   name ?? "",
                 ]}
                 labelFormatter={(lbl) => `Date: ${lbl}`}
@@ -74,7 +74,7 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
               />
               <Line
                 dataKey="debt"
-                name={`${freqLabel[freq]} Debt BTC`}
+                name={`${freqLabel[freq]} Debt asset`}
                 stroke={freqColor[freq]}
                 strokeWidth={2}
                 dot={false}
@@ -82,7 +82,7 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
               />
               <Line
                 dataKey="dca"
-                name={`${freqLabel[freq]} DCA BTC`}
+                name={`${freqLabel[freq]} DCA asset`}
                 stroke={freqColor[freq]}
                 strokeDasharray="6 4"
                 strokeWidth={2}

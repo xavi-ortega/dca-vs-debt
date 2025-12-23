@@ -1,29 +1,28 @@
 {
-  "name": "bitcoin-strategy",
+  "name": "dca-vs-debt",
   "version": "1.0.0",
   "private": true,
-  "description": "Simulate and compare Bitcoin debt strategies and DCA with realistic costs, fees, and long-term risk constraints.",
+  "description": "Simulate and compare asset-backed debt strategies and DCA with realistic costs, fees, and long-term risk constraints.",
   "main": "index.js",
-  "homepage": "https://bitcoin-strategy.vercel.app/",
+  "homepage": "https://dca-vs-debt.vercel.app/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xavi-ortega/bitcoin-strategy.git"
+    "url": "https://github.com/xavi-ortega/dca-vs-debt.git"
   },
   "bugs": {
-    "url": "https://github.com/xavi-ortega/bitcoin-strategy/issues"
+    "url": "https://github.com/xavi-ortega/dca-vs-debt/issues"
   },
   "engines": {
     "node": ">=20.19.0"
   },
   "keywords": [
-    "bitcoin",
-    "btc",
-    "backtesting",
-    "cryptocurrency",
     "dca",
+    "debt",
+    "backtesting",
+    "asset",
     "leverage",
     "collateralized-loans",
-    "crypto-lending",
+    "lending",
     "financial-simulation"
   ],
   "workspaces": [

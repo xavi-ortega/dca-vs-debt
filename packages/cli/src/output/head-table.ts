@@ -1,7 +1,7 @@
 import kleur from "kleur";
-import type { HeadToHeadRow } from "@bitcoin-strategy/core";
+import type { HeadToHeadRow } from "@dca-vs-debt/core";
 import type { Column } from "./types.js";
-import { fmtBTC, fmtInt } from "../format/index.js";
+import { fmtAsset, fmtInt } from "../format/index.js";
 
 export function getHeadToHeadTableColumns(): Column<HeadToHeadRow>[] {
   return [
@@ -11,17 +11,17 @@ export function getHeadToHeadTableColumns(): Column<HeadToHeadRow>[] {
       cell: (r) => kleur.cyan(String(r.freq)),
     },
     {
-      label: "Debt BTC",
+      label: "Debt asset",
       align: "right",
-      cell: (r) => fmtBTC(r.debtBTC),
+      cell: (r) => fmtAsset(r.debtBTC),
     },
-    { label: "DCA BTC", align: "right", cell: (r) => fmtBTC(r.dcaBTC) },
+    { label: "DCA asset", align: "right", cell: (r) => fmtAsset(r.dcaBTC) },
     {
-      label: "Δ BTC",
+      label: "Δ asset",
       align: "right",
       cell: (r) => {
         const v = r.deltaBTC as number;
-        const s = fmtBTC(v);
+        const s = fmtAsset(v);
         return v > 0 ? kleur.green(s) : v < 0 ? kleur.red(s) : s;
       },
     },

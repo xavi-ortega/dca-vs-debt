@@ -11,7 +11,7 @@ export function fmtInt(n: number): string {
   return Math.round(n).toLocaleString("en-US");
 }
 
-export function fmtBTC(n: number): string {
+export function fmtAsset(n: number): string {
   const abs = Math.abs(n);
   const digits = abs >= 100 ? 4 : abs >= 1 ? 6 : 8;
   return fmtNum(n, digits);

@@ -1,7 +1,7 @@
 import kleur from "kleur";
-import type { DcaCrossRow } from "@bitcoin-strategy/core";
+import type { DcaCrossRow } from "@dca-vs-debt/core";
 import type { Column } from "./types.js";
-import { fmtBTC, fmtInt } from "../format/index.js";
+import { fmtAsset, fmtInt } from "../format/index.js";
 
 export function getDcaCrossTableColumns(): Column<DcaCrossRow>[] {
   return [
@@ -17,9 +17,9 @@ export function getDcaCrossTableColumns(): Column<DcaCrossRow>[] {
       cell: (r) => fmtInt(r.budgetUSD),
     },
     {
-      label: "DCA BTC",
+      label: "DCA asset",
       align: "right",
-      cell: (r) => fmtBTC(r.dcaBTCFinal),
+      cell: (r) => fmtAsset(r.dcaBTCFinal),
     },
     { label: "Buys", align: "right", cell: (r) => fmtInt(r.dcaBuys) },
     {

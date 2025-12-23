@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable } from "./DataTable.js";
-import { fmtBTC, fmtUSD, fmtInt } from "@/lib/utils";
+import { fmtAsset, fmtUSD, fmtInt } from "@/lib/utils";
 import type { DebtRow, HeadRow, CrossRow } from "../types/index.js";
 
 interface ResultsTabsProps {
@@ -92,7 +92,7 @@ export function ResultsTabs({
             <CardHeader>
               <CardTitle>Debt Strategy</CardTitle>
               <CardDescription>
-                Breakdown of external costs and resulting BTC exposure.
+                Breakdown of external costs and resulting asset exposure.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -106,9 +106,9 @@ export function ResultsTabs({
                     { key: "freq", label: "Freq" },
                     {
                       key: "btcFinal",
-                      label: "BTC",
+                      label: "Asset",
                       align: "right",
-                      render: (r) => fmtBTC(r.btcFinal),
+                      render: (r) => fmtAsset(r.btcFinal),
                     },
                     {
                       key: "finalValueUSD",
@@ -177,7 +177,7 @@ export function ResultsTabs({
             <CardHeader>
               <CardTitle>Debt vs DCA (same frequency)</CardTitle>
               <CardDescription>
-                Compare BTC and net USD value using the same schedule.
+                Compare asset exposure and net USD value on the same schedule.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -191,21 +191,21 @@ export function ResultsTabs({
                     { key: "freq", label: "Freq" },
                     {
                       key: "debtBTC",
-                      label: "Debt BTC",
+                      label: "Debt asset",
                       align: "right",
-                      render: (r) => fmtBTC(r.debtBTC),
+                      render: (r) => fmtAsset(r.debtBTC),
                     },
                     {
                       key: "dcaBTC",
-                      label: "DCA BTC",
+                      label: "DCA asset",
                       align: "right",
-                      render: (r) => fmtBTC(r.dcaBTC),
+                      render: (r) => fmtAsset(r.dcaBTC),
                     },
                     {
                       key: "deltaBTC",
-                      label: "Δ BTC",
+                      label: "Δ asset",
                       align: "right",
-                      render: (r) => fmtBTC(r.deltaBTC),
+                      render: (r) => fmtAsset(r.deltaBTC),
                     },
                     {
                       key: "debtNetUSD",
@@ -267,14 +267,14 @@ export function ResultsTabs({
                       key: "budgetUSD",
                       label: "Budget $",
                       align: "right",
-                      render: (r) => fmtUSD(r.budgetUSD, 0, 0),
-                    },
-                    {
-                      key: "dcaBTCFinal",
-                      label: "DCA BTC",
-                      align: "right",
-                      render: (r) => fmtBTC(r.dcaBTCFinal),
-                    },
+                  render: (r) => fmtUSD(r.budgetUSD, 0, 0),
+                },
+                {
+                  key: "dcaBTCFinal",
+                  label: "DCA asset",
+                  align: "right",
+                  render: (r) => fmtAsset(r.dcaBTCFinal),
+                },
                     {
                       key: "dcaBuys",
                       label: "Buys",

@@ -68,10 +68,10 @@ export function PriceChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>BTC price</CardTitle>
+        <CardTitle>Asset price</CardTitle>
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-muted-foreground">
-            Spot BTC with liquidation-risk moments for the selected cadence.
+            Spot price with liquidation-risk moments for the selected cadence.
           </p>
           <FreqSelect value={freq} onChange={setFreq} />
         </div>

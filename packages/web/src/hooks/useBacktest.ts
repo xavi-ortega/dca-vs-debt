@@ -10,7 +10,7 @@ import {
   type SeriesPoint,
   type Frequency,
   isRebalanceDay,
-} from "@bitcoin-strategy/core";
+} from "@dca-vs-debt/core";
 import type { DebtRow, HeadRow, CrossRow } from "../types/index.js";
 
 type ChartRow = Record<string, number | string>;

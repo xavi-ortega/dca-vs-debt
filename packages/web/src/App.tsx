@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import type { CoreConfig } from "@bitcoin-strategy/core";
+import type { CoreConfig } from "@dca-vs-debt/core";
 import { Header } from "./components/Header.js";
 import { ConfigCards } from "./components/ConfigCards.js";
 import { ResultsTabs } from "./components/ResultsTabs.js";
