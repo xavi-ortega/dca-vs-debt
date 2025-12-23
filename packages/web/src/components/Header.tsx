@@ -23,7 +23,6 @@ interface HeaderProps {
   hasUploaded: boolean;
   darkMode: boolean;
   onDarkModeChange: (dark: boolean) => void;
-  onLoad: () => void;
   onUpload: (file: File) => void;
   onRun: () => void;
   canRun: boolean;
@@ -36,7 +35,6 @@ export function Header({
   hasUploaded,
   darkMode,
   onDarkModeChange,
-  onLoad,
   onUpload,
   onRun,
   canRun,
@@ -95,7 +93,8 @@ export function Header({
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" align="center">
-              Upload a daily CSV with columns: date, price. Formats like 6,849.09 are accepted.
+              Upload a daily CSV with columns: date, price. Formats like
+              6,849.09 are accepted.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -106,10 +105,6 @@ export function Header({
           className="hidden"
           onChange={handleFileChange}
         />
-
-        <Button variant="secondary" onClick={onLoad}>
-          Load
-        </Button>
 
         <Button onClick={onRun} disabled={!canRun}>
           Run

@@ -89,17 +89,20 @@ export default function App() {
 
   const [hasUploaded, setHasUploaded] = useState(false);
 
-  const handleLoad = () => {
-    if (datasetId === "uploaded") return;
-    if (!dataset) return;
-    loadDataset(dataset);
-  };
-
   const handleUpload = async (file: File) => {
     await loadFile(file);
     setHasUploaded(true);
     setDatasetId("uploaded");
   };
+
+  useEffect(() => {
+    if (datasetId === "uploaded") return;
+    const ds = datasets.find((d) => d.id === datasetId);
+    if (!ds) return;
+    loadDataset(ds);
+    // loadDataset is stable enough; omit from deps to avoid refetch loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datasetId, datasets]);
 
   const handleRun = () => {
     if (!rawSeries) return;
@@ -119,7 +122,6 @@ export default function App() {
           hasUploaded={hasUploaded}
           darkMode={darkMode}
           onDarkModeChange={setDarkMode}
-          onLoad={handleLoad}
           onUpload={handleUpload}
           onRun={handleRun}
           canRun={canRun}
