@@ -248,75 +248,85 @@ export function CombinedBtcChart({
           <CardTitle>Asset exposure over time</CardTitle>
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm text-muted-foreground">
-              Compare asset holdings for Debt vs DCA by cadence (or all at once).
-          </p>
-          <FreqSelect value={freq} onChange={setFreq} includeAll />
-        </div>
-      </CardHeader>
-      <CardContent className="h-96 space-y-4">
-        {!data ? (
-          emptyState
-        ) : (
-          <>
-            <ResponsiveContainer width="100%" height="70%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="date" minTickGap={28} />
-                <YAxis tickFormatter={(v) => fmtAsset(Number(v))} width={90} />
-                <Tooltip content={renderTooltip} wrapperStyle={{ zIndex: 40 }} />
-                <Legend content={renderLegend} />
-                {lines.map((line) =>
-                  hiddenKeys.has(line.dataKey) ? null : (
-                    <Line
-                      key={line.dataKey}
-                      dataKey={line.dataKey}
-                      name={line.name}
-                      stroke={line.stroke}
-                      strokeDasharray={line.dashed ? "6 4" : undefined}
-                      strokeWidth={2}
-                      dot={false}
-                      isAnimationActive={false}
+              Compare asset holdings for Debt vs DCA by cadence (or all at
+              once).
+            </p>
+            <FreqSelect value={freq} onChange={setFreq} includeAll />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!data ? (
+            emptyState
+          ) : (
+            <>
+              <div className="h-72 sm:h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--border)"
                     />
-                  ),
-                )}
-              </LineChart>
-            </ResponsiveContainer>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <StatTile
-                label="Budget"
-                value={
-                  stats.budgetUSD != null ? fmtUSD(stats.budgetUSD, 0, 0) : "--"
-                }
-                hint="Debt: total external capital borrowed. DCA: budget mirrored from debt external value."
-              />
-              <StatTile
-                label="Debt ops"
-                value={
-                  stats.debtOps != null
-                    ? `${stats.debtOps} ops`
-                    : "--"
-                }
-                extra={
-                  stats.debtFeesUSD != null
-                    ? `Fees ${fmtUSD(stats.debtFeesUSD, 0, 0)}`
-                    : undefined
-                }
-                hint="Amortization + refinance operations and their total fees."
-              />
-              <StatTile
-                label="DCA ops"
-                value={stats.dcaOps != null ? `${stats.dcaOps} buys` : "--"}
-                extra={
-                  stats.dcaFeesUSD != null
-                    ? `Fees ${fmtUSD(stats.dcaFeesUSD, 0, 0)}`
-                    : undefined
-                }
-                hint="Number of DCA purchases and total transaction fees."
-              />
-            </div>
-          </>
-        )}
-      </CardContent>
+                    <XAxis dataKey="date" minTickGap={28} />
+                    <YAxis
+                      tickFormatter={(v) => fmtAsset(Number(v))}
+                      width={90}
+                    />
+                    <Tooltip
+                      content={renderTooltip}
+                      wrapperStyle={{ zIndex: 40 }}
+                    />
+                    <Legend content={renderLegend} />
+                    {lines.map((line) =>
+                      hiddenKeys.has(line.dataKey) ? null : (
+                        <Line
+                          key={line.dataKey}
+                          dataKey={line.dataKey}
+                          name={line.name}
+                          stroke={line.stroke}
+                          strokeDasharray={line.dashed ? "6 4" : undefined}
+                          strokeWidth={2}
+                          dot={false}
+                          isAnimationActive={false}
+                        />
+                      ),
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <StatTile
+                  label="Budget"
+                  value={
+                    stats.budgetUSD != null
+                      ? fmtUSD(stats.budgetUSD, 0, 0)
+                      : "--"
+                  }
+                  hint="Debt: total external capital borrowed. DCA: budget mirrored from debt external value."
+                />
+                <StatTile
+                  label="Debt ops"
+                  value={stats.debtOps != null ? `${stats.debtOps} ops` : "--"}
+                  extra={
+                    stats.debtFeesUSD != null
+                      ? `Fees ${fmtUSD(stats.debtFeesUSD, 0, 0)}`
+                      : undefined
+                  }
+                  hint="Amortization + refinance operations and their total fees."
+                />
+                <StatTile
+                  label="DCA ops"
+                  value={stats.dcaOps != null ? `${stats.dcaOps} buys` : "--"}
+                  extra={
+                    stats.dcaFeesUSD != null
+                      ? `Fees ${fmtUSD(stats.dcaFeesUSD, 0, 0)}`
+                      : undefined
+                  }
+                  hint="Number of DCA purchases and total transaction fees."
+                />
+              </div>
+            </>
+          )}
+        </CardContent>
       </Card>
     </TooltipProvider>
   );

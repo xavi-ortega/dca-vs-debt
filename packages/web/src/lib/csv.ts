@@ -53,7 +53,6 @@ export async function fetchCsvSeries(url: string): Promise<SeriesPoint[]> {
     .filter((x): x is SeriesPoint => Boolean(x))
     .sort((a, b) => a.date.localeCompare(b.date));
 
-
   console.log("Fetched CSV series:", { url, length: series.length });
 
   if (series.length < 10) throw new Error("CSV parsed series too short.");

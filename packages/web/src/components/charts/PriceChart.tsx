@@ -414,7 +414,8 @@ export function PriceChart({
         <CardTitle>Asset price & risk events</CardTitle>
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm text-muted-foreground">
-            Spot price with liquidation windows and strategy actions for the selected cadence.
+            Spot price with liquidation windows and strategy actions for the
+            selected cadence.
           </p>
           <FreqSelect value={freq} onChange={setFreq} />
         </div>
