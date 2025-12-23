@@ -28,7 +28,7 @@ const emptyState = (
 );
 
 const PRICE_COLOR = "#8b5cf6";
-const LIQUIDATION_COLOR = "rgba(239, 68, 68, 0.18)";
+const LIQUIDATION_COLOR = "rgba(239, 68, 68, 0.26)";
 const AMORTIZATION_COLOR = "#14b8a6";
 const REFINANCE_COLOR = "#38bdf8";
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -45,7 +45,9 @@ export function PriceChart({
   refinanceEvents: StrategyEvent[] | null;
 }) {
   const [freq, setFreq] = useState(FREQ_ORDER[0]);
-  const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
+  const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(
+    () => new Set(["amortization", "refinance"]),
+  );
   const filteredEvents = useMemo(
     () => (ltvEvents ? ltvEvents.filter((e) => e.freq === freq) : []),
     [ltvEvents, freq],
@@ -186,6 +188,35 @@ export function PriceChart({
     },
   ];
 
+  const eventsByDate = useMemo(() => {
+    const map = new Map<
+      string,
+      { liquidations: LtvEvent[]; amortizations: number; refinances: number }
+    >();
+    filteredEvents.forEach((e) => {
+      const entry =
+        map.get(e.date) ??
+        { liquidations: [], amortizations: 0, refinances: 0 };
+      entry.liquidations.push(e);
+      map.set(e.date, entry);
+    });
+    filteredAmortizations.forEach((e) => {
+      const entry =
+        map.get(e.date) ??
+        { liquidations: [], amortizations: 0, refinances: 0 };
+      entry.amortizations += 1;
+      map.set(e.date, entry);
+    });
+    filteredRefinances.forEach((e) => {
+      const entry =
+        map.get(e.date) ??
+        { liquidations: [], amortizations: 0, refinances: 0 };
+      entry.refinances += 1;
+      map.set(e.date, entry);
+    });
+    return map;
+  }, [filteredEvents, filteredAmortizations, filteredRefinances]);
+
   const renderTooltip = ({
     active,
     payload,
@@ -205,25 +236,104 @@ export function PriceChart({
       typeof label === "number"
         ? new Date(Number(label)).toISOString().slice(0, 10)
         : label;
+    const dateKey = String(dateLabel);
+    const dayEvents = eventsByDate.get(dateKey);
 
     return (
       <div className="rounded-md border bg-card/95 px-3 py-2 text-xs shadow-lg backdrop-blur">
         <div className="mb-1 text-[11px] font-semibold text-muted-foreground">
           {dateLabel}
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            aria-hidden
-            style={{
-              display: "inline-block",
-              width: 18,
-              borderTop: `3px solid ${PRICE_COLOR}`,
-            }}
-          />
-          <span className="font-medium">Price</span>
-          <span className="text-muted-foreground">
-            {fmtUSD(Number(priceEntry.value), 0, 0)}
-          </span>
+        <div className="space-y-1.5">
+          <div className="grid grid-cols-[18px_auto] items-center gap-2">
+            <span
+              aria-hidden
+              style={{
+                display: "inline-block",
+                width: 18,
+                borderTop: `3px solid ${PRICE_COLOR}`,
+              }}
+            />
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Price</span>
+              <span className="text-muted-foreground">
+                {fmtUSD(Number(priceEntry.value), 0, 0)}
+              </span>
+            </div>
+          </div>
+          {dayEvents?.liquidations.map((evt, idx) => (
+            <div
+              key={`liq-${idx}`}
+              className="grid grid-cols-[18px_auto] items-center gap-2"
+            >
+              <span
+                aria-hidden
+                style={{
+                  display: "inline-block",
+                  width: 14,
+                  height: 10,
+                  borderRadius: 2,
+                  backgroundColor: LIQUIDATION_COLOR,
+                  outline: `1px solid rgba(239, 68, 68, 0.5)`,
+                  outlineOffset: -1,
+                }}
+              />
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Liquidation risk</span>
+                {evt.ltv !== undefined && (
+                  <span className="text-muted-foreground">
+                    (LTV {evt.ltv.toFixed(2)})
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+          {dayEvents?.amortizations ? (
+            <div className="grid grid-cols-[18px_auto] items-center gap-2">
+              <span
+                aria-hidden
+                style={{
+                  display: "inline-block",
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  backgroundColor: AMORTIZATION_COLOR,
+                  border: `1px solid ${AMORTIZATION_COLOR}`,
+                }}
+              />
+              <div className="flex items-center gap-2">
+                <span className="font-medium">
+                  Amortization
+                  {dayEvents.amortizations > 1
+                    ? ` x${dayEvents.amortizations}`
+                    : ""}
+                </span>
+              </div>
+            </div>
+          ) : null}
+          {dayEvents?.refinances ? (
+            <div className="grid grid-cols-[18px_auto] items-center gap-2">
+              <span
+                aria-hidden
+                style={{
+                  display: "inline-block",
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  backgroundColor: REFINANCE_COLOR,
+                  border: `1px solid ${REFINANCE_COLOR}`,
+                }}
+              />
+              <div className="flex items-center gap-2">
+                <span className="font-medium">
+                  Refinance
+                  {dayEvents.refinances > 1
+                    ? ` x${dayEvents.refinances}`
+                    : ""}
+                </span>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     );
@@ -281,7 +391,7 @@ export function PriceChart({
                   height: 10,
                   borderRadius: 3,
                   backgroundColor: item.stroke,
-                  opacity: isHidden ? 0.2 : 0.15,
+                  opacity: isHidden ? 0.35 : 0.35,
                   outline: `1px solid ${item.stroke}`,
                   outlineOffset: -1,
                 }}
@@ -337,7 +447,7 @@ export function PriceChart({
                 }
                 yAxisId="price"
               />
-              <Tooltip content={renderTooltip} />
+              <Tooltip content={renderTooltip} shared />
               <Legend content={renderLegend} />
               {!hiddenKeys.has("liquidation") &&
                 priceStats &&
@@ -369,8 +479,11 @@ export function PriceChart({
                     stroke={AMORTIZATION_COLOR}
                     dataKey="priceValue"
                     yAxisId="price"
+                    tooltipType="none"
                     line={false}
                     isAnimationActive={false}
+                    className="pointer-events-none"
+                    activeShape={false}
                   />
                 )}
               {!hiddenKeys.has("refinance") &&
@@ -382,8 +495,11 @@ export function PriceChart({
                     stroke={REFINANCE_COLOR}
                     dataKey="priceValue"
                     yAxisId="price"
+                    tooltipType="none"
                     line={false}
                     isAnimationActive={false}
+                    className="pointer-events-none"
+                    activeShape={false}
                   />
                 )}
               {!hiddenKeys.has("price") && (
