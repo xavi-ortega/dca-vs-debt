@@ -449,7 +449,11 @@ export function PriceChart({
                 }
                 yAxisId="price"
               />
-              <Tooltip content={renderTooltip} shared />
+              <Tooltip
+                content={renderTooltip}
+                shared
+                wrapperStyle={{ zIndex: 40 }}
+              />
               <Legend content={renderLegend} />
               {!hiddenKeys.has("liquidation") &&
                 priceStats &&

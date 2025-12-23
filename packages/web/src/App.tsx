@@ -170,6 +170,8 @@ export default function App() {
               refinanceEvents={refinanceEvents}
               priceSeries={priceSeries}
               headRows={headRows}
+              debtRows={debtRows}
+              crossRows={crossRows}
             />
           }
         />

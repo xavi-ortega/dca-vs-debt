@@ -5,6 +5,7 @@ import type {
   PricePoint,
   StrategyEvent,
 } from "@/hooks/useBacktest.js";
+import type { DebtRow, CrossRow } from "@/types/index.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CombinedBtcChart } from "./CombinedBtcChart.js";
 import { HeadHeatmap } from "./HeadHeatmap.js";
@@ -20,6 +21,8 @@ type Props = {
   refinanceEvents: StrategyEvent[] | null;
   priceSeries: PricePoint[] | null;
   headRows: HeadRow[] | null;
+  debtRows: DebtRow[] | null;
+  crossRows: CrossRow[] | null;
 };
 
 export function ChartsPanel({
@@ -29,6 +32,8 @@ export function ChartsPanel({
   refinanceEvents,
   priceSeries,
   headRows,
+  debtRows,
+  crossRows,
 }: Props) {
   const hasData = Boolean(
     combinedBtcChart || ltvEvents || headRows || priceSeries,
@@ -48,7 +53,13 @@ export function ChartsPanel({
         amortizationEvents={amortizationEvents}
         refinanceEvents={refinanceEvents}
       />
-      <CombinedBtcChart data={combinedBtcChart} />
+      <CombinedBtcChart
+        data={combinedBtcChart}
+        debtRows={debtRows}
+        crossRows={crossRows}
+        amortizationEvents={amortizationEvents}
+        refinanceEvents={refinanceEvents}
+      />
       <Card>
         <CardHeader>
           <CardTitle>Performance overview</CardTitle>

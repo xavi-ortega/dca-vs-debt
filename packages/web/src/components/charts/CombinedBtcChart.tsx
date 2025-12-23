@@ -10,9 +10,18 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fmtAsset } from "@/lib/utils";
+import { fmtAsset, fmtUSD } from "@/lib/utils";
 import { freqColor, freqLabel, FREQ_ORDER } from "@/lib/frequency";
 import { FreqSelect } from "./FreqSelect.js";
+import type { DebtRow, CrossRow } from "@/types/index.js";
+import type { StrategyEvent } from "@/hooks/useBacktest.js";
+import { Info } from "lucide-react";
+import {
+  Tooltip as TooltipBase,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip.js";
 
 type ChartRow = Record<string, number | string>;
 
@@ -22,7 +31,19 @@ const emptyState = (
   </div>
 );
 
-export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
+export function CombinedBtcChart({
+  data,
+  debtRows,
+  crossRows,
+  amortizationEvents,
+  refinanceEvents,
+}: {
+  data: ChartRow[] | null;
+  debtRows: DebtRow[] | null;
+  crossRows: CrossRow[] | null;
+  amortizationEvents: StrategyEvent[] | null;
+  refinanceEvents: StrategyEvent[] | null;
+}) {
   const [freq, setFreq] = useState<string>("daily");
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
 
@@ -102,6 +123,35 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
       return next;
     });
   };
+
+  const stats = useMemo(() => {
+    if (freq === "all") {
+      return {
+        budgetUSD: null,
+        debtOps: null,
+        debtFeesUSD: null,
+        dcaOps: null,
+        dcaFeesUSD: null,
+      };
+    }
+    const debt = debtRows?.find((r) => r.freq === freq);
+    const dcaCross = crossRows?.find(
+      (r) => r.debtFreq === freq && r.dcaFreq === freq,
+    );
+    const amortCount =
+      amortizationEvents?.filter((e) => e.freq === freq).length ?? 0;
+    const refiCount =
+      refinanceEvents?.filter((e) => e.freq === freq).length ?? 0;
+    return {
+      budgetUSD: debt?.externalTotalUSD ?? null,
+      debtOps: amortCount + refiCount,
+      debtFeesUSD: debt?.feesUSD ?? null,
+      dcaOps: dcaCross?.dcaBuys ?? null,
+      dcaFeesUSD: dcaCross?.dcaFeesUSD ?? null,
+      amortCount,
+      refiCount,
+    };
+  }, [freq, debtRows, crossRows, amortizationEvents, refinanceEvents]);
 
   const renderTooltip = ({
     active,
@@ -192,45 +242,120 @@ export function CombinedBtcChart({ data }: { data: ChartRow[] | null }) {
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Asset exposure over time</CardTitle>
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm text-muted-foreground">
-            Compare asset holdings for Debt vs DCA by cadence (or all at once).
+    <TooltipProvider delayDuration={150}>
+      <Card>
+        <CardHeader>
+          <CardTitle>Asset exposure over time</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">
+              Compare asset holdings for Debt vs DCA by cadence (or all at once).
           </p>
           <FreqSelect value={freq} onChange={setFreq} includeAll />
         </div>
       </CardHeader>
-      <CardContent className="h-96">
+      <CardContent className="h-96 space-y-4">
         {!data ? (
           emptyState
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="date" minTickGap={28} />
-              <YAxis tickFormatter={(v) => fmtAsset(Number(v))} width={90} />
-              <Tooltip content={renderTooltip} />
-              <Legend content={renderLegend} />
-              {lines.map((line) =>
-                hiddenKeys.has(line.dataKey) ? null : (
-                  <Line
-                    key={line.dataKey}
-                    dataKey={line.dataKey}
-                    name={line.name}
-                    stroke={line.stroke}
-                    strokeDasharray={line.dashed ? "6 4" : undefined}
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
-                ),
-              )}
-            </LineChart>
-          </ResponsiveContainer>
+          <>
+            <ResponsiveContainer width="100%" height="70%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="date" minTickGap={28} />
+                <YAxis tickFormatter={(v) => fmtAsset(Number(v))} width={90} />
+                <Tooltip content={renderTooltip} wrapperStyle={{ zIndex: 40 }} />
+                <Legend content={renderLegend} />
+                {lines.map((line) =>
+                  hiddenKeys.has(line.dataKey) ? null : (
+                    <Line
+                      key={line.dataKey}
+                      dataKey={line.dataKey}
+                      name={line.name}
+                      stroke={line.stroke}
+                      strokeDasharray={line.dashed ? "6 4" : undefined}
+                      strokeWidth={2}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  ),
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <StatTile
+                label="Budget"
+                value={
+                  stats.budgetUSD != null ? fmtUSD(stats.budgetUSD, 0, 0) : "--"
+                }
+                hint="Debt: total external capital borrowed. DCA: budget mirrored from debt external value."
+              />
+              <StatTile
+                label="Debt ops"
+                value={
+                  stats.debtOps != null
+                    ? `${stats.debtOps} ops`
+                    : "--"
+                }
+                extra={
+                  stats.debtFeesUSD != null
+                    ? `Fees ${fmtUSD(stats.debtFeesUSD, 0, 0)}`
+                    : undefined
+                }
+                hint="Amortization + refinance operations and their total fees."
+              />
+              <StatTile
+                label="DCA ops"
+                value={stats.dcaOps != null ? `${stats.dcaOps} buys` : "--"}
+                extra={
+                  stats.dcaFeesUSD != null
+                    ? `Fees ${fmtUSD(stats.dcaFeesUSD, 0, 0)}`
+                    : undefined
+                }
+                hint="Number of DCA purchases and total transaction fees."
+              />
+            </div>
+          </>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </TooltipProvider>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  extra,
+  hint,
+}: {
+  label: string;
+  value: string;
+  extra?: string;
+  hint?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border/70 p-3 text-sm">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <span>{label}</span>
+        {hint && (
+          <TooltipBase>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+                aria-label={hint}
+              >
+                <Info size={14} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" align="start">
+              {hint}
+            </TooltipContent>
+          </TooltipBase>
+        )}
+      </div>
+      <div className="mt-1 text-lg font-semibold">{value}</div>
+      {extra && <div className="text-xs text-muted-foreground">{extra}</div>}
+    </div>
   );
 }

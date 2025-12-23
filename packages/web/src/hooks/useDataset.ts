@@ -21,6 +21,11 @@ export function useDatasets(): Dataset[] {
         label: "Gold daily (2015-12-23 → 2025-12-23)",
         url: "/datasets/gold-chart_20251223T084157.csv",
       },
+      {
+        id: "sp500_2010_2025",
+        label: "S&P 500 daily (2010-01-01 → 2025-12-23)",
+        url: "/datasets/S&P 500 Historical Data 01_01_2010_23_12_2025.csv",
+      },
     ],
     [],
   );
